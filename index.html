@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Lending App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Include jsPDF library from CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button.active {
+            background-color: #10b981; /* Tailwind's emerald-500, a color from Supabase's palette */
+            color: white;
+        }
+        /* Custom modal styles for reminders and messages */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        /* Style for the main app container when it's hidden */
+        #app-container {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <!-- Login/Signup Container -->
+    <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-lg">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Money Lending App</h1>
+        <form id="auth-form" class="space-y-4">
+            <div>
+                <label for="auth-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+            </div>
+            <div>
+                <label for="auth-password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+            </div>
+            <button type="submit" id="login-button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Login</button>
+            <button type="submit" id="signup-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Sign Up</button>
+        </form>
+    </div>
+
+    <!-- Main App Container - Hidden by default -->
+    <div id="app-container" class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Money Lending Dashboard</h1>
+            <div class="flex items-center space-x-4">
+                <span id="user-id-display" class="text-sm text-gray-500">User ID: N/A</span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">Logout</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Accounts Receivable Card -->
+            <div class="bg-emerald-50 rounded-xl p-6 shadow-md border border-emerald-200">
+                <h3 class="text-lg font-medium text-emerald-800">Accounts Receivable</h3>
+                <p id="receivable-total" class="text-3xl font-bold text-emerald-600 mt-2">R0.00</p>
+            </div>
+            <!-- Accounts Payable Card -->
+            <div class="bg-rose-50 rounded-xl p-6 shadow-md border border-rose-200">
+                <h3 class="text-lg font-medium text-rose-800">Accounts Payable</h3>
+                <p id="payable-total" class="text-3xl font-bold text-rose-600 mt-2">R0.00</p>
+            </div>
+            <!-- Net Interest Card -->
+            <div class="bg-green-50 rounded-xl p-6 shadow-md border border-green-200">
+                <h3 class="text-lg font-medium text-green-800">Net Interest</h3>
+                <p id="net-interest-total" class="text-3xl font-bold text-green-600 mt-2">R0.00</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap gap-2 mb-8 border-b border-gray-200">
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('clients')">Clients</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('transactions')">Transactions</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('add-client')">Add Client</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('add-transaction', 'payable')">Add Payment</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('add-transaction', 'receivable')">Add Transaction</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="clients" class="tab-content">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Client List</h2>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Debt (R)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="client-list-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Client data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="transactions" class="tab-content">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Transaction History</h2>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal (R)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Rate (%)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Earned (R)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fees (R)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Due (R)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-list-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Transaction data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="add-client" class="tab-content">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add New Client</h2>
+            <form id="add-client-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                <div>
+                    <label for="client-name" class="block text-sm font-medium text-gray-700">Client Name</label>
+                    <input type="text" id="client-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Client Name" required>
+                </div>
+                <div>
+                    <label for="client-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                    <input type="email" id="client-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Email Address">
+                </div>
+                <div>
+                    <label for="client-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Phone Number">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Client</button>
+            </form>
+        </div>
+
+        <div id="add-transaction" class="tab-content">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add New Transaction</h2>
+            <form id="add-transaction-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                <div>
+                    <label for="client-select" class="block text-sm font-medium text-gray-700">Select Client:</label>
+                    <select id="client-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+                        <option value="">-- Select a Client --</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="transaction-type" class="block text-sm font-medium text-gray-700">Transaction Type:</label>
+                    <select id="transaction-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+                        <option value="receivable">Loan (Accounts Receivable)</option>
+                        <option value="payable">Payment (Accounts Payable)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount (R):</label>
+                    <input type="number" id="amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Amount" step="0.01" required>
+                </div>
+                <!-- This section for loan details will be shown/hidden based on transaction type -->
+                <div id="loan-details" class="space-y-4 hidden">
+                    <div>
+                        <label for="interest-rate" class="block text-sm font-medium text-gray-700">Interest Rate (% for the entire loan):</label>
+                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="e.g., 40" step="0.1">
+                    </div>
+                    <div>
+                        <label for="due-date" class="block text-sm font-medium text-gray-700">Due Date:</label>
+                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Reminders & Messages -->
+    <div id="message-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
+            <p id="modal-message" class="text-gray-700 mb-6"></p>
+            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- Supabase Imports ---
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        
+        // --- Supabase Configuration ---
+        // REPLACE with your actual Supabase project URL and public anon key
+        const SUPABASE_URL = 'https://jdsdasvqgldaaopurgng.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_DaoFEDZNLDpv6fmyVitR6w_Omocl1uc';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let userId = null;
+
+        // DOM elements
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const authForm = document.getElementById('auth-form');
+        const logoutButton = document.getElementById('logout-button');
+        const userIdDisplay = document.getElementById('user-id-display');
+
+        const dashboard = {
+            receivableTotal: document.getElementById('receivable-total'),
+            payableTotal: document.getElementById('payable-total'),
+            netInterestTotal: document.getElementById('net-interest-total')
+        };
+        const clientListBody = document.getElementById('client-list-body');
+        const transactionListBody = document.getElementById('transaction-list-body');
+        const clientSelect = document.getElementById('client-select');
+        const addClientForm = document.getElementById('add-client-form');
+        const addTransactionForm = document.getElementById('add-transaction-form');
+        const transactionTypeSelect = document.getElementById('transaction-type');
+        const loanDetailsDiv = document.getElementById('loan-details');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const messageModal = document.getElementById('message-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+
+        let clients = [];
+        let transactions = [];
+
+        // --- Helper Functions ---
+
+        // Function to show a custom message modal
+        function showMessage(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            messageModal.style.display = 'flex';
+        }
+
+        // Function to close the message modal
+        window.closeModal = function() {
+            messageModal.style.display = 'none';
+        };
+
+        // Function to calculate and update late fees (This logic is now client-side, but should be a DB function for production)
+        async function updateLateFees() {
+            if (!userId) return;
+
+            const now = new Date();
+            for (const t of transactions) {
+                if (t.type === 'receivable' && t.due_date) { // Note: Supabase uses snake_case by default
+                    const dueDate = new Date(t.due_date);
+                    if (now > dueDate) {
+                        const monthsLate = Math.floor((now.getFullYear() - dueDate.getFullYear()) * 12 + (now.getMonth() - dueDate.getMonth()));
+                        if (monthsLate > 0) {
+                            const monthlyLateFee = t.amount * (t.interest_rate / 100);
+                            const totalLateFee = (monthlyLateFee * monthsLate).toFixed(2);
+                            if (parseFloat(t.late_fees) !== parseFloat(totalLateFee)) {
+                                await supabase
+                                    .from('transactions')
+                                    .update({ late_fees: totalLateFee })
+                                    .eq('id', t.id);
+                            }
+                        } else if (t.late_fees > 0) {
+                             await supabase
+                                .from('transactions')
+                                .update({ late_fees: 0 })
+                                .eq('id', t.id);
+                        }
+                    } else if (t.late_fees > 0) {
+                        await supabase
+                           .from('transactions')
+                           .update({ late_fees: 0 })
+                           .eq('id', t.id);
+                    }
+                }
+            }
+        }
+
+        // Calculate and display dashboard metrics
+        function calculateMetrics() {
+            let receivable = 0;
+            let payable = 0;
+            let netInterest = 0;
+
+            const clientBalances = {};
+            clients.forEach(c => clientBalances[c.id] = 0);
+
+            transactions.forEach(t => {
+                if (t.type === 'receivable') {
+                    const totalDue = t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
+                    receivable += totalDue;
+                    netInterest += (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
+                    if (clientBalances[t.client_id] !== undefined) {
+                        clientBalances[t.client_id] += totalDue;
+                    }
+                } else if (t.type === 'payable') {
+                    payable += t.amount;
+                    if (clientBalances[t.client_id] !== undefined) {
+                        clientBalances[t.client_id] -= t.amount;
+                    }
+                }
+            });
+
+            dashboard.receivableTotal.textContent = `R${receivable.toFixed(2)}`;
+            dashboard.payableTotal.textContent = `R${payable.toFixed(2)}`;
+            dashboard.netInterestTotal.textContent = `R${netInterest.toFixed(2)}`;
+
+            renderClientList(clientBalances);
+        }
+
+        // Render the client list table
+        function renderClientList(clientBalances) {
+            clientListBody.innerHTML = '';
+            clients.forEach(client => {
+                const row = document.createElement('tr');
+                const balance = (clientBalances[client.id] || 0).toFixed(2);
+                const balanceColor = balance > 0 ? 'text-rose-600' : 'text-green-600';
+
+                const hasOverdueLoans = transactions.some(t => t.client_id === client.id && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
+                const overdueBadge = hasOverdueLoans ? '<span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Overdue</span>' : '';
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name}${overdueBadge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.email || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${balanceColor}">R${balance}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button onclick="downloadClientReport('${client.id}')" class="text-emerald-600 hover:text-emerald-900 font-bold">Download Report</button>
+                        <button onclick="remindClient('${client.id}')" class="text-orange-500 hover:text-orange-700 font-bold">Remind</button>
+                    </td>
+                `;
+                clientListBody.appendChild(row);
+            });
+        }
+
+        // Function to show a reminder modal
+        window.remindClient = function(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showMessage('Error', 'Client not found.');
+                return;
+            }
+            const overdueLoans = transactions.filter(t => t.client_id === clientId && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
+
+            let message = `Hello ${client.name},<br><br>`;
+            if (overdueLoans.length > 0) {
+                message += "This is a friendly reminder that you have one or more overdue loan payments:<br><br>";
+                overdueLoans.forEach(loan => {
+                    message += `Loan of **R${loan.amount.toFixed(2)}** was due on **${loan.due_date}**.<br>The current outstanding amount is **R${(loan.amount + (loan.interest_earned || 0) + (parseFloat(loan.late_fees) || 0)).toFixed(2)}**.<br><br>`;
+                });
+                message += "Please settle the outstanding balance as soon as possible.<br><br>Thank you!";
+            } else {
+                message += "This client has no overdue loans at this time. All payments are up to date.<br><br>Thank you!";
+            }
+
+            showMessage('Reminder', message);
+        };
+
+        // New function to handle report generation and download as a PDF
+        window.downloadClientReport = function(clientId) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showMessage('Error', 'Client not found!');
+                return;
+            }
+
+            const clientTransactions = transactions.filter(t => t.client_id === clientId);
+            
+            let y = 20;
+            const margin = 15;
+            const lineHeight = 7;
+            
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Client Report`, margin, y);
+            doc.setFontSize(16);
+            doc.text(client.name, margin, y + lineHeight);
+            doc.setDrawColor(200);
+            doc.line(margin, y + lineHeight + 2, 200, y + lineHeight + 2);
+            y += lineHeight * 3;
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Email: ${client.email || 'N/A'}`, margin, y);
+            y += lineHeight;
+            doc.text(`Phone: ${client.phone || 'N/A'}`, margin, y);
+            y += lineHeight * 2;
+
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("Transaction History:", margin, y);
+            y += lineHeight;
+            
+            const headers = ["Date", "Type", "Principal (R)", "Interest (R)", "Late Fees (R)", "Total Due (R)"];
+            const columnWidths = [25, 20, 25, 20, 25, 25];
+            let x = margin;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            headers.forEach((header, index) => {
+                doc.text(header, x, y);
+                x += columnWidths[index];
+            });
+            y += 2;
+            doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
+            y += lineHeight;
+
+            doc.setFont("helvetica", "normal");
+            let balance = 0;
+            if (clientTransactions.length === 0) {
+                doc.text("No transactions found.", margin, y);
+                y += lineHeight;
+            } else {
+                clientTransactions.forEach(t => {
+                    const type = t.type === 'receivable' ? 'Loan' : 'Payment';
+                    const interestEarned = t.interest_earned !== undefined ? t.interest_earned.toFixed(2) : 'N/A';
+                    const lateFees = t.late_fees !== undefined ? parseFloat(t.late_fees).toFixed(2) : '0.00';
+                    const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
+                    
+                    x = margin;
+                    doc.text(t.date, x, y);
+                    x += columnWidths[0];
+                    doc.text(type, x, y);
+                    x += columnWidths[1];
+                    doc.text(t.amount.toFixed(2), x, y);
+                    x += columnWidths[2];
+                    doc.text(interestEarned, x, y);
+                    x += columnWidths[3];
+                    doc.text(lateFees, x, y);
+                    x += columnWidths[4];
+                    doc.text(totalDue, x, y);
+                    y += lineHeight;
+
+                    if (t.type === 'receivable') {
+                        balance += parseFloat(totalDue);
+                    } else if (t.type === 'payable') {
+                        balance -= t.amount;
+                    }
+                });
+            }
+            
+            y += lineHeight;
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Final Balance: R${balance.toFixed(2)}`, margin, y);
+
+            const filename = `${client.name.replace(/ /g, '_')}_report.pdf`;
+            doc.save(filename);
+        };
+
+        // Render the transaction list table
+        function renderTransactionList() {
+            transactionListBody.innerHTML = '';
+            transactions.forEach(t => {
+                const clientName = clients.find(c => c.id === t.client_id)?.name || 'Unknown Client'; // Supabase uses snake_case for foreign keys
+                const row = document.createElement('tr');
+                const interestEarned = t.interest_earned !== undefined ? `R${t.interest_earned.toFixed(2)}` : 'N/A';
+                const lateFees = t.late_fees !== undefined ? `R${parseFloat(t.late_fees).toFixed(2)}` : 'R0.00';
+                const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
+                const typeColor = t.type === 'receivable' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${clientName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeColor}">
+                            ${t.type === 'receivable' ? 'Loan' : 'Payment'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R${t.amount.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.interest_rate ? t.interest_rate.toFixed(2) + '%' : 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${interestEarned}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${lateFees}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">R${totalDue}</td>
+                `;
+                transactionListBody.appendChild(row);
+            });
+        }
+
+        // Populate the client dropdown for new transactions
+        function populateClientSelect() {
+            clientSelect.innerHTML = '<option value="">-- Select a Client --</option>';
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.name;
+                clientSelect.appendChild(option);
+            });
+        }
+
+        // A new function to handle showing/hiding the loan details section
+        function toggleLoanDetails() {
+            if (transactionTypeSelect.value === 'receivable') {
+                loanDetailsDiv.classList.remove('hidden');
+            } else {
+                loanDetailsDiv.classList.add('hidden');
+            }
+        }
+        
+        // Function to fetch data from Supabase
+        async function fetchData() {
+            if (!userId) {
+                console.log("UserID not available, skipping data fetch.");
+                return;
+            }
+            try {
+                // Fetch clients
+                const { data: clientsData, error: clientsError } = await supabase
+                    .from('clients')
+                    .select('*')
+                    .eq('user_id', userId);
+
+                if (clientsError) throw clientsError;
+                clients = clientsData;
+
+                // Fetch transactions
+                const { data: transactionsData, error: transactionsError } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('user_id', userId);
+
+                if (transactionsError) throw transactionsError;
+                transactions = transactionsData;
+
+                // Update UI after fetching data
+                updateLateFees();
+                calculateMetrics();
+                populateClientSelect();
+                renderTransactionList();
+            } catch (error) {
+                showMessage('Error', `Failed to fetch data: ${error.message}`);
+                console.error('Error fetching data:', error);
+            }
+        }
+        
+        // Supabase Auth listener to manage UI state and fetch data
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                // User is signed in
+                console.log("User is signed in:", session.user.id);
+                userId = session.user.id;
+                userIdDisplay.textContent = `User ID: ${userId}`;
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                fetchData(); // Fetch data when a user signs in
+            } else {
+                // User is signed out, show the login/signup UI
+                console.log("User is signed out.");
+                userId = null;
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
+            }
+        });
+
+        // --- Event Listeners ---
+
+        // Auth form submission
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            let buttonId = e.submitter.id;
+
+            try {
+                if (buttonId === 'login-button') {
+                    console.log("Attempting to log in with email:", email);
+                    const { error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                } else if (buttonId === 'signup-button') {
+                    console.log("Attempting to sign up with email:", email);
+                    const { error } = await supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+                    showMessage('Registration Successful', 'You have been signed up and logged in successfully.');
+                }
+            } catch (error) {
+                showMessage('Authentication Failed', `Error: ${error.message}`);
+                console.error("Authentication failed:", error);
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                showMessage('Logged Out', 'You have been logged out successfully.');
+            } catch (error) {
+                showMessage('Logout Failed', `Error: ${error.message}`);
+                console.error("Logout failed:", error);
+            }
+        });
+
+        // Add new client form submission
+        addClientForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('client-name').value;
+            const email = document.getElementById('client-email').value;
+            const phone = document.getElementById('client-phone').value;
+
+            const newClient = {
+                name,
+                email,
+                phone,
+                user_id: userId // Associate the client with the logged-in user
+            };
+            
+            try {
+                const { error } = await supabase
+                    .from('clients')
+                    .insert([newClient]);
+
+                if (error) throw error;
+                addClientForm.reset();
+                showMessage('Success', 'Client added successfully!');
+                showTab('clients');
+                fetchData(); // Refresh data to show new client
+            } catch (error) {
+                showMessage('Error', 'Failed to add client. Please try again.');
+                console.error("Error adding client:", error);
+            }
+        });
+
+        // Add new transaction form submission
+        addTransactionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const clientId = document.getElementById('client-select').value;
+            const type = transactionTypeSelect.value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!clientId) {
+                showMessage('Validation Error', 'Please select a client.');
+                return;
+            }
+
+            const newTransaction = {
+                date: new Date().toISOString().split('T')[0],
+                client_id: clientId, // Supabase foreign key
+                user_id: userId, // Associate the transaction with the logged-in user
+                type,
+                amount
+            };
+
+            if (type === 'receivable') {
+                const interestRate = parseFloat(document.getElementById('interest-rate').value);
+                const dueDate = document.getElementById('due-date').value;
+                const interestEarned = amount * (interestRate / 100);
+                
+                newTransaction.interest_rate = interestRate;
+                newTransaction.interest_earned = interestEarned;
+                newTransaction.due_date = dueDate;
+                newTransaction.late_fees = 0;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('transactions')
+                    .insert([newTransaction]);
+                    
+                if (error) throw error;
+                addTransactionForm.reset();
+                showMessage('Success', 'Transaction added successfully!');
+                showTab('transactions');
+                fetchData(); // Refresh data to show new transaction
+            } catch (error) {
+                showMessage('Error', 'Failed to add transaction. Please try again.');
+                console.error("Error adding transaction:", error);
+            }
+        });
+
+        // Toggle loan details based on transaction type
+        transactionTypeSelect.addEventListener('change', toggleLoanDetails);
+
+        // Tab switching logic
+        window.showTab = function(tabId, transactionType = null) {
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            tabButtons.forEach(button => {
+                button.classList.remove('active', 'bg-emerald-600', 'text-white');
+                button.classList.add('text-gray-700', 'hover:bg-gray-200');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            const activeButton = document.querySelector(`.tab-button[onclick*="showTab('${tabId}'"]`);
+            if (activeButton) {
+                activeButton.classList.add('active', 'bg-emerald-600', 'text-white');
+                activeButton.classList.remove('text-gray-700', 'hover:bg-gray-200');
+            }
+            
+            if (tabId === 'add-transaction') {
+                if (transactionType) {
+                    transactionTypeSelect.value = transactionType;
+                }
+                toggleLoanDetails();
+            }
+        };
+
+        // --- Initial Setup ---
+        // Initially, no user is logged in, so only the login form is shown.
+        // The onAuthStateChange listener handles showing the app when a user logs in.
+    </script>
+</body>
+</html>
