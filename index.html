@@ -1,54 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#10b981"/>
-</head>
-<body>
-    ...
-    <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                })
-                .catch(error => {
-                    console.error('Service Worker registration failed:', error);
-                });
-        });
-    }
-    // ... existing Supabase and other code ...
-
-let deferredPrompt; // A variable to store the install event
-
-// Listen for the beforeinstallprompt event
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the default browser prompt from showing up
-    e.preventDefault();
-    // Store the event so we can use it later
-    deferredPrompt = e;
-    // Show your custom install button
-    document.getElementById('install-button').classList.remove('hidden');
-});
-
-// Listen for the button click
-document.getElementById('install-button').addEventListener('click', async () => {
-    // Hide the button once it's clicked
-    document.getElementById('install-button').classList.add('hidden');
-    // Show the browser's native installation prompt
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        deferredPrompt = null; // Clear the stored event
-    }
-});
-</script>
-</html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Lending App</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#10b981"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -108,10 +65,7 @@ document.getElementById('install-button').addEventListener('click', async () => 
     </style>
 </head>
 <body class="p-4 sm:p-8">
-<button id="install-button" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
-    Download App
-</button>
-    <!-- Login/Signup Container -->
+
     <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-2xl">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Money Lending App</h1>
         <form id="auth-form" class="space-y-4">
@@ -126,9 +80,11 @@ document.getElementById('install-button').addEventListener('click', async () => 
             <button type="submit" id="login-button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Login</button>
             <button type="submit" id="signup-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Sign Up</button>
         </form>
+        <button id="install-button" class="hidden w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">
+            Download App
+        </button>
     </div>
 
-    <!-- Main App Container -->
     <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-6 sm:p-10">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl sm:text-4xl font-bold text-white">Money Lending Dashboard</h1>
@@ -138,7 +94,6 @@ document.getElementById('install-button').addEventListener('click', async () => 
             </div>
         </div>
 
-        <!-- Dashboard Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-emerald-50 rounded-xl p-6 shadow-md border border-emerald-200">
                 <h3 class="text-lg font-medium text-emerald-800">Accounts Receivable</h3>
@@ -154,7 +109,6 @@ document.getElementById('install-button').addEventListener('click', async () => 
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
         <div class="flex flex-wrap gap-2 mb-8 border-b border-white border-opacity-30">
             <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">Clients</button>
             <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">Transactions</button>
@@ -163,7 +117,6 @@ document.getElementById('install-button').addEventListener('click', async () => 
             <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">Add Transaction</button>
         </div>
 
-        <!-- Tab Content -->
         <div id="clients" class="tab-content">
             <h2 class="text-2xl font-semibold text-white mb-4">Client List</h2>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
@@ -178,8 +131,7 @@ document.getElementById('install-button').addEventListener('click', async () => 
                         </tr>
                     </thead>
                     <tbody id="client-list-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Client data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -201,8 +153,7 @@ document.getElementById('install-button').addEventListener('click', async () => 
                         </tr>
                     </thead>
                     <tbody id="transaction-list-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Transaction data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -261,7 +212,6 @@ document.getElementById('install-button').addEventListener('click', async () => 
         </div>
     </div>
 
-    <!-- Custom Modal for Reminders & Messages -->
     <div id="message-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
@@ -288,6 +238,7 @@ document.getElementById('install-button').addEventListener('click', async () => 
         const authForm = document.getElementById('auth-form');
         const logoutButton = document.getElementById('logout-button');
         const userIdDisplay = document.getElementById('user-id-display');
+        const installButton = document.getElementById('install-button');
 
         const dashboard = {
             receivableTotal: document.getElementById('receivable-total'),
@@ -309,6 +260,37 @@ document.getElementById('install-button').addEventListener('click', async () => 
 
         let clients = [];
         let transactions = [];
+        let deferredPrompt; // Variable to store the install event
+
+        // PWA Installation Logic
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.classList.remove('hidden');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installButton.classList.add('hidden');
+            }
+        });
+
 
         // Helper Functions
         function showMessage(title, message) {
@@ -755,4 +737,4 @@ document.getElementById('install-button').addEventListener('click', async () => 
         console.log("App initialized. Please log in or sign up.");
     </script>
 </body>
-</html>
+</html>s
