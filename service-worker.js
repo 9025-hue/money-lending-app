@@ -1,13 +1,10 @@
-const CACHE_NAME = 'pwa-lending-app-cache-v1';
+const CACHE_NAME = 'money-lending-app-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json',
-  // Add other assets like CSS and JS files if you create them separately
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', event => {
