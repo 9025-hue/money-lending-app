@@ -1,17 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#10b981"/>
+</head>
+<body>
+    ...
+    <script>
+        // Register the service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Lending App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Include jsPDF library from CDN for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
         .tab-content {
             display: none;
@@ -20,10 +40,9 @@
             display: block;
         }
         .tab-button.active {
-            background-color: #10b981; /* Tailwind's emerald-500, a color from Supabase's palette */
+            background-color: #10b981;
             color: white;
         }
-        /* Custom modal styles for reminders and messages */
         .modal {
             display: none;
             position: fixed;
@@ -46,54 +65,62 @@
             max-width: 500px;
             text-align: center;
         }
-        /* Style for the main app container when it's hidden */
         #app-container {
             display: none;
         }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        input, select, textarea {
+            border: 1px solid #d1d5db;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #10b981;
+            ring-color: #10b981;
+        }
     </style>
 </head>
-<body class="bg-gray-100 p-4 sm:p-8">
+<body class="p-4 sm:p-8">
 
     <!-- Login/Signup Container -->
-    <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-lg">
+    <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-2xl">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Money Lending App</h1>
         <form id="auth-form" class="space-y-4">
             <div>
                 <label for="auth-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
             </div>
             <div>
                 <label for="auth-password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
             </div>
-            <button type="submit" id="login-button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Login</button>
-            <button type="submit" id="signup-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Sign Up</button>
+            <button type="submit" id="login-button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Login</button>
+            <button type="submit" id="signup-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Sign Up</button>
         </form>
     </div>
 
-    <!-- Main App Container - Hidden by default -->
-    <div id="app-container" class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
+    <!-- Main App Container -->
+    <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-6 sm:p-10">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Money Lending Dashboard</h1>
+            <h1 class="text-3xl sm:text-4xl font-bold text-white">Money Lending Dashboard</h1>
             <div class="flex items-center space-x-4">
-                <span id="user-id-display" class="text-sm text-gray-500">User ID: N/A</span>
-                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">Logout</button>
+                <span id="user-id-display" class="text-sm text-white opacity-75">User ID: N/A</span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">Logout</button>
             </div>
         </div>
 
         <!-- Dashboard Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Accounts Receivable Card -->
             <div class="bg-emerald-50 rounded-xl p-6 shadow-md border border-emerald-200">
                 <h3 class="text-lg font-medium text-emerald-800">Accounts Receivable</h3>
                 <p id="receivable-total" class="text-3xl font-bold text-emerald-600 mt-2">R0.00</p>
             </div>
-            <!-- Accounts Payable Card -->
             <div class="bg-rose-50 rounded-xl p-6 shadow-md border border-rose-200">
                 <h3 class="text-lg font-medium text-rose-800">Accounts Payable</h3>
                 <p id="payable-total" class="text-3xl font-bold text-rose-600 mt-2">R0.00</p>
             </div>
-            <!-- Net Interest Card -->
             <div class="bg-green-50 rounded-xl p-6 shadow-md border border-green-200">
                 <h3 class="text-lg font-medium text-green-800">Net Interest</h3>
                 <p id="net-interest-total" class="text-3xl font-bold text-green-600 mt-2">R0.00</p>
@@ -101,17 +128,17 @@
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex flex-wrap gap-2 mb-8 border-b border-gray-200">
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('clients')">Clients</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('transactions')">Transactions</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('add-client')">Add Client</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('add-transaction', 'payable')">Add Payment</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-gray-700 hover:bg-gray-200 focus:outline-none" onclick="showTab('add-transaction', 'receivable')">Add Transaction</button>
+        <div class="flex flex-wrap gap-2 mb-8 border-b border-white border-opacity-30">
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">Clients</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">Transactions</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-client')">Add Client</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'payable')">Add Payment</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">Add Transaction</button>
         </div>
 
         <!-- Tab Content -->
         <div id="clients" class="tab-content">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Client List</h2>
+            <h2 class="text-2xl font-semibold text-white mb-4">Client List</h2>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -131,7 +158,7 @@
         </div>
 
         <div id="transactions" class="tab-content">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Transaction History</h2>
+            <h2 class="text-2xl font-semibold text-white mb-4">Transaction History</h2>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -154,56 +181,55 @@
         </div>
 
         <div id="add-client" class="tab-content">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add New Client</h2>
+            <h2 class="text-2xl font-semibold text-white mb-4">Add New Client</h2>
             <form id="add-client-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
                 <div>
                     <label for="client-name" class="block text-sm font-medium text-gray-700">Client Name</label>
-                    <input type="text" id="client-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Client Name" required>
+                    <input type="text" id="client-name" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Client Name" required>
                 </div>
                 <div>
                     <label for="client-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" id="client-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Email Address">
+                    <input type="email" id="client-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Email Address">
                 </div>
                 <div>
                     <label for="client-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Phone Number">
+                    <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Phone Number">
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Client</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Add Client</button>
             </form>
         </div>
 
         <div id="add-transaction" class="tab-content">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add New Transaction</h2>
+            <h2 class="text-2xl font-semibold text-white mb-4">Add New Transaction</h2>
             <form id="add-transaction-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
                 <div>
                     <label for="client-select" class="block text-sm font-medium text-gray-700">Select Client:</label>
-                    <select id="client-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+                    <select id="client-select" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
                         <option value="">-- Select a Client --</option>
                     </select>
                 </div>
                 <div>
                     <label for="transaction-type" class="block text-sm font-medium text-gray-700">Transaction Type:</label>
-                    <select id="transaction-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" required>
+                    <select id="transaction-type" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
                         <option value="receivable">Loan (Accounts Receivable)</option>
                         <option value="payable">Payment (Accounts Payable)</option>
                     </select>
                 </div>
                 <div>
                     <label for="amount" class="block text-sm font-medium text-gray-700">Amount (R):</label>
-                    <input type="number" id="amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="Amount" step="0.01" required>
+                    <input type="number" id="amount" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Amount" step="0.01" required>
                 </div>
-                <!-- This section for loan details will be shown/hidden based on transaction type -->
                 <div id="loan-details" class="space-y-4 hidden">
                     <div>
                         <label for="interest-rate" class="block text-sm font-medium text-gray-700">Interest Rate (% for the entire loan):</label>
-                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2" placeholder="e.g., 40" step="0.1">
+                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="e.g., 40" step="0.1">
                     </div>
                     <div>
                         <label for="due-date" class="block text-sm font-medium text-gray-700">Due Date:</label>
-                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2">
+                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Transaction</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Add Transaction</button>
             </form>
         </div>
     </div>
@@ -213,7 +239,7 @@
         <div class="modal-content">
             <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
             <p id="modal-message" class="text-gray-700 mb-6"></p>
-            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Close</button>
+            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">Close</button>
         </div>
     </div>
 
@@ -223,8 +249,8 @@
         
         // --- Supabase Configuration ---
         // REPLACE with your actual Supabase project URL and public anon key
-        const SUPABASE_URL = 'https://jdsdasvqgldaaopurgng.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_DaoFEDZNLDpv6fmyVitR6w_Omocl1uc';
+        const SUPABASE_URL = 'https://azncsbqyjzqhxecagevm.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bmNzYnF5anpxaHhlY2FnZXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzUxODcsImV4cCI6MjA3MDY1MTE4N30.fGe2JVhV2JPHnWg8xabO4wZVoflqhroen0SqTS2FO6c'
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let userId = null;
@@ -257,27 +283,22 @@
         let clients = [];
         let transactions = [];
 
-        // --- Helper Functions ---
-
-        // Function to show a custom message modal
+        // Helper Functions
         function showMessage(title, message) {
             modalTitle.textContent = title;
             modalMessage.innerHTML = message;
             messageModal.style.display = 'flex';
         }
 
-        // Function to close the message modal
         window.closeModal = function() {
             messageModal.style.display = 'none';
         };
 
-        // Function to calculate and update late fees (This logic is now client-side, but should be a DB function for production)
         async function updateLateFees() {
             if (!userId) return;
-
             const now = new Date();
             for (const t of transactions) {
-                if (t.type === 'receivable' && t.due_date) { // Note: Supabase uses snake_case by default
+                if (t.type === 'receivable' && t.due_date) {
                     const dueDate = new Date(t.due_date);
                     if (now > dueDate) {
                         const monthsLate = Math.floor((now.getFullYear() - dueDate.getFullYear()) * 12 + (now.getMonth() - dueDate.getMonth()));
@@ -289,24 +310,14 @@
                                     .from('transactions')
                                     .update({ late_fees: totalLateFee })
                                     .eq('id', t.id);
+                                t.late_fees = totalLateFee;
                             }
-                        } else if (t.late_fees > 0) {
-                             await supabase
-                                .from('transactions')
-                                .update({ late_fees: 0 })
-                                .eq('id', t.id);
                         }
-                    } else if (t.late_fees > 0) {
-                        await supabase
-                           .from('transactions')
-                           .update({ late_fees: 0 })
-                           .eq('id', t.id);
                     }
                 }
             }
         }
 
-        // Calculate and display dashboard metrics
         function calculateMetrics() {
             let receivable = 0;
             let payable = 0;
@@ -338,7 +349,6 @@
             renderClientList(clientBalances);
         }
 
-        // Render the client list table
         function renderClientList(clientBalances) {
             clientListBody.innerHTML = '';
             clients.forEach(client => {
@@ -363,7 +373,6 @@
             });
         }
 
-        // Function to show a reminder modal
         window.remindClient = function(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
@@ -386,105 +395,108 @@
             showMessage('Reminder', message);
         };
 
-        // New function to handle report generation and download as a PDF
         window.downloadClientReport = function(clientId) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const client = clients.find(c => c.id === clientId);
-            if (!client) {
-                showMessage('Error', 'Client not found!');
-                return;
-            }
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const client = clients.find(c => c.id === clientId);
+                if (!client) {
+                    showMessage('Error', 'Client not found!');
+                    return;
+                }
 
-            const clientTransactions = transactions.filter(t => t.client_id === clientId);
-            
-            let y = 20;
-            const margin = 15;
-            const lineHeight = 7;
-            
-            doc.setFontSize(22);
-            doc.setFont("helvetica", "bold");
-            doc.text(`Client Report`, margin, y);
-            doc.setFontSize(16);
-            doc.text(client.name, margin, y + lineHeight);
-            doc.setDrawColor(200);
-            doc.line(margin, y + lineHeight + 2, 200, y + lineHeight + 2);
-            y += lineHeight * 3;
+                const clientTransactions = transactions.filter(t => t.client_id === clientId);
+                
+                let y = 20;
+                const margin = 15;
+                const lineHeight = 7;
+                
+                doc.setFontSize(22);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Client Report`, margin, y);
+                doc.setFontSize(16);
+                doc.text(client.name, margin, y + lineHeight);
+                doc.setDrawColor(200);
+                doc.line(margin, y + lineHeight + 2, 200, y + lineHeight + 2);
+                y += lineHeight * 3;
 
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Email: ${client.email || 'N/A'}`, margin, y);
-            y += lineHeight;
-            doc.text(`Phone: ${client.phone || 'N/A'}`, margin, y);
-            y += lineHeight * 2;
-
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
-            doc.text("Transaction History:", margin, y);
-            y += lineHeight;
-            
-            const headers = ["Date", "Type", "Principal (R)", "Interest (R)", "Late Fees (R)", "Total Due (R)"];
-            const columnWidths = [25, 20, 25, 20, 25, 25];
-            let x = margin;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "bold");
-            headers.forEach((header, index) => {
-                doc.text(header, x, y);
-                x += columnWidths[index];
-            });
-            y += 2;
-            doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
-            y += lineHeight;
-
-            doc.setFont("helvetica", "normal");
-            let balance = 0;
-            if (clientTransactions.length === 0) {
-                doc.text("No transactions found.", margin, y);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Email: ${client.email || 'N/A'}`, margin, y);
                 y += lineHeight;
-            } else {
-                clientTransactions.forEach(t => {
-                    const type = t.type === 'receivable' ? 'Loan' : 'Payment';
-                    const interestEarned = t.interest_earned !== undefined ? t.interest_earned.toFixed(2) : 'N/A';
-                    const lateFees = t.late_fees !== undefined ? parseFloat(t.late_fees).toFixed(2) : '0.00';
-                    const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
-                    
-                    x = margin;
-                    doc.text(t.date, x, y);
-                    x += columnWidths[0];
-                    doc.text(type, x, y);
-                    x += columnWidths[1];
-                    doc.text(t.amount.toFixed(2), x, y);
-                    x += columnWidths[2];
-                    doc.text(interestEarned, x, y);
-                    x += columnWidths[3];
-                    doc.text(lateFees, x, y);
-                    x += columnWidths[4];
-                    doc.text(totalDue, x, y);
-                    y += lineHeight;
+                doc.text(`Phone: ${client.phone || 'N/A'}`, margin, y);
+                y += lineHeight * 2;
 
-                    if (t.type === 'receivable') {
-                        balance += parseFloat(totalDue);
-                    } else if (t.type === 'payable') {
-                        balance -= t.amount;
-                    }
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("Transaction History:", margin, y);
+                y += lineHeight;
+                
+                const headers = ["Date", "Type", "Principal (R)", "Interest (R)", "Late Fees (R)", "Total Due (R)"];
+                const columnWidths = [25, 20, 25, 20, 25, 25];
+                let x = margin;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                headers.forEach((header, index) => {
+                    doc.text(header, x, y);
+                    x += columnWidths[index];
                 });
-            }
-            
-            y += lineHeight;
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
-            doc.text(`Final Balance: R${balance.toFixed(2)}`, margin, y);
+                y += 2;
+                doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
+                y += lineHeight;
 
-            const filename = `${client.name.replace(/ /g, '_')}_report.pdf`;
-            doc.save(filename);
+                doc.setFont("helvetica", "normal");
+                let balance = 0;
+                if (clientTransactions.length === 0) {
+                    doc.text("No transactions found.", margin, y);
+                    y += lineHeight;
+                } else {
+                    clientTransactions.forEach(t => {
+                        const type = t.type === 'receivable' ? 'Loan' : 'Payment';
+                        const interestEarned = t.interest_earned !== undefined ? t.interest_earned.toFixed(2) : 'N/A';
+                        const lateFees = t.late_fees !== undefined ? parseFloat(t.late_fees).toFixed(2) : '0.00';
+                        const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
+                        
+                        x = margin;
+                        doc.text(t.date, x, y);
+                        x += columnWidths[0];
+                        doc.text(type, x, y);
+                        x += columnWidths[1];
+                        doc.text(t.amount.toFixed(2), x, y);
+                        x += columnWidths[2];
+                        doc.text(interestEarned, x, y);
+                        x += columnWidths[3];
+                        doc.text(lateFees, x, y);
+                        x += columnWidths[4];
+                        doc.text(totalDue, x, y);
+                        y += lineHeight;
+
+                        if (t.type === 'receivable') {
+                            balance += parseFloat(totalDue);
+                        } else if (t.type === 'payable') {
+                            balance -= t.amount;
+                        }
+                    });
+                }
+                
+                y += lineHeight;
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Final Balance: R${balance.toFixed(2)}`, margin, y);
+
+                const filename = `${client.name.replace(/ /g, '_')}_report.pdf`;
+                doc.save(filename);
+            } catch (error) {
+                showMessage('Error', 'Failed to generate PDF report. Please try again.');
+                console.error('PDF generation error:', error);
+            }
         };
 
-        // Render the transaction list table
         function renderTransactionList() {
             transactionListBody.innerHTML = '';
             transactions.forEach(t => {
-                const clientName = clients.find(c => c.id === t.client_id)?.name || 'Unknown Client'; // Supabase uses snake_case for foreign keys
+                const clientName = clients.find(c => c.id === t.client_id)?.name || 'Unknown Client';
                 const row = document.createElement('tr');
                 const interestEarned = t.interest_earned !== undefined ? `R${t.interest_earned.toFixed(2)}` : 'N/A';
                 const lateFees = t.late_fees !== undefined ? `R${parseFloat(t.late_fees).toFixed(2)}` : 'R0.00';
@@ -508,7 +520,6 @@
             });
         }
 
-        // Populate the client dropdown for new transactions
         function populateClientSelect() {
             clientSelect.innerHTML = '<option value="">-- Select a Client --</option>';
             clients.forEach(client => {
@@ -519,7 +530,6 @@
             });
         }
 
-        // A new function to handle showing/hiding the loan details section
         function toggleLoanDetails() {
             if (transactionTypeSelect.value === 'receivable') {
                 loanDetailsDiv.classList.remove('hidden');
@@ -528,33 +538,29 @@
             }
         }
         
-        // Function to fetch data from Supabase
         async function fetchData() {
             if (!userId) {
                 console.log("UserID not available, skipping data fetch.");
                 return;
             }
             try {
-                // Fetch clients
                 const { data: clientsData, error: clientsError } = await supabase
                     .from('clients')
                     .select('*')
                     .eq('user_id', userId);
 
                 if (clientsError) throw clientsError;
-                clients = clientsData;
+                clients = clientsData || [];
 
-                // Fetch transactions
                 const { data: transactionsData, error: transactionsError } = await supabase
                     .from('transactions')
                     .select('*')
                     .eq('user_id', userId);
 
                 if (transactionsError) throw transactionsError;
-                transactions = transactionsData;
+                transactions = transactionsData || [];
 
-                // Update UI after fetching data
-                updateLateFees();
+                await updateLateFees();
                 calculateMetrics();
                 populateClientSelect();
                 renderTransactionList();
@@ -564,18 +570,16 @@
             }
         }
         
-        // Supabase Auth listener to manage UI state and fetch data
         supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
-                // User is signed in
                 console.log("User is signed in:", session.user.id);
                 userId = session.user.id;
                 userIdDisplay.textContent = `User ID: ${userId}`;
                 authContainer.style.display = 'none';
                 appContainer.style.display = 'block';
-                fetchData(); // Fetch data when a user signs in
+                fetchData();
+                showTab('clients'); // Show clients tab by default
             } else {
-                // User is signed out, show the login/signup UI
                 console.log("User is signed out.");
                 userId = null;
                 authContainer.style.display = 'block';
@@ -583,14 +587,12 @@
             }
         });
 
-        // --- Event Listeners ---
-
-        // Auth form submission
+        // Event Listeners
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-            let buttonId = e.submitter.id;
+            const buttonId = e.submitter.id;
 
             try {
                 if (buttonId === 'login-button') {
@@ -620,7 +622,6 @@
             }
         });
 
-        // Add new client form submission
         addClientForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('client-name').value;
@@ -631,7 +632,7 @@
                 name,
                 email,
                 phone,
-                user_id: userId // Associate the client with the logged-in user
+                user_id: userId
             };
             
             try {
@@ -643,14 +644,13 @@
                 addClientForm.reset();
                 showMessage('Success', 'Client added successfully!');
                 showTab('clients');
-                fetchData(); // Refresh data to show new client
+                fetchData();
             } catch (error) {
                 showMessage('Error', 'Failed to add client. Please try again.');
                 console.error("Error adding client:", error);
             }
         });
 
-        // Add new transaction form submission
         addTransactionForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const clientId = document.getElementById('client-select').value;
@@ -664,14 +664,14 @@
 
             const newTransaction = {
                 date: new Date().toISOString().split('T')[0],
-                client_id: clientId, // Supabase foreign key
-                user_id: userId, // Associate the transaction with the logged-in user
+                client_id: clientId,
+                user_id: userId,
                 type,
                 amount
             };
 
             if (type === 'receivable') {
-                const interestRate = parseFloat(document.getElementById('interest-rate').value);
+                const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
                 const dueDate = document.getElementById('due-date').value;
                 const interestEarned = amount * (interestRate / 100);
                 
@@ -690,29 +690,29 @@
                 addTransactionForm.reset();
                 showMessage('Success', 'Transaction added successfully!');
                 showTab('transactions');
-                fetchData(); // Refresh data to show new transaction
+                fetchData();
             } catch (error) {
                 showMessage('Error', 'Failed to add transaction. Please try again.');
                 console.error("Error adding transaction:", error);
             }
         });
 
-        // Toggle loan details based on transaction type
         transactionTypeSelect.addEventListener('change', toggleLoanDetails);
 
-        // Tab switching logic
         window.showTab = function(tabId, transactionType = null) {
             tabContents.forEach(tab => tab.classList.remove('active'));
             tabButtons.forEach(button => {
                 button.classList.remove('active', 'bg-emerald-600', 'text-white');
-                button.classList.add('text-gray-700', 'hover:bg-gray-200');
+                button.classList.add('text-white', 'hover:bg-white', 'hover:bg-opacity-20');
             });
 
             document.getElementById(tabId).classList.add('active');
-            const activeButton = document.querySelector(`.tab-button[onclick*="showTab('${tabId}'"]`);
+            const activeButton = Array.from(tabButtons).find(button => 
+                button.getAttribute('onclick')?.includes(`showTab('${tabId}'`)
+            );
             if (activeButton) {
                 activeButton.classList.add('active', 'bg-emerald-600', 'text-white');
-                activeButton.classList.remove('text-gray-700', 'hover:bg-gray-200');
+                activeButton.classList.remove('hover:bg-white', 'hover:bg-opacity-20');
             }
             
             if (tabId === 'add-transaction') {
@@ -723,9 +723,9 @@
             }
         };
 
-        // --- Initial Setup ---
-        // Initially, no user is logged in, so only the login form is shown.
-        // The onAuthStateChange listener handles showing the app when a user logs in.
+        // Initialize the app - show login form by default
+        // The auth state change listener will handle showing the app when user logs in
+        console.log("App initialized. Please log in or sign up.");
     </script>
 </body>
 </html>
