@@ -18,8 +18,33 @@
                 });
         });
     }
+    // ... existing Supabase and other code ...
+
+let deferredPrompt; // A variable to store the install event
+
+// Listen for the beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the default browser prompt from showing up
+    e.preventDefault();
+    // Store the event so we can use it later
+    deferredPrompt = e;
+    // Show your custom install button
+    document.getElementById('install-button').classList.remove('hidden');
+});
+
+// Listen for the button click
+document.getElementById('install-button').addEventListener('click', async () => {
+    // Hide the button once it's clicked
+    document.getElementById('install-button').classList.add('hidden');
+    // Show the browser's native installation prompt
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        deferredPrompt = null; // Clear the stored event
+    }
+});
 </script>
-    </script>
 </html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,7 +108,9 @@
     </style>
 </head>
 <body class="p-4 sm:p-8">
-
+<button id="install-button" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+    Download App
+</button>
     <!-- Login/Signup Container -->
     <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-2xl">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Money Lending App</h1>
