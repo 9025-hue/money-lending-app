@@ -132,19 +132,22 @@
             background-color: #10b981;
             color: white;
         }
+        .compact-section {
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
-<body class="p-4 sm:p-8">
+<body class="p-4 sm:p-6">
 
-    <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-2xl">
-        <div class="text-center mb-6">
-            <i class="fas fa-hand-holding-usd text-5xl text-emerald-600 mb-4"></i>
-            <h1 class="text-3xl font-bold text-gray-800">Money Lending App</h1>
-            <p class="text-gray-600 mt-2">Manage your lending business efficiently</p>
+    <div id="auth-container" class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-2xl">
+        <div class="text-center mb-4">
+            <i class="fas fa-hand-holding-usd text-4xl text-emerald-600 mb-3"></i>
+            <h1 class="text-2xl font-bold text-gray-800">Money Lending App</h1>
+            <p class="text-gray-600 mt-1 text-sm">Manage your lending business efficiently</p>
         </div>
         
         <!-- Auth Tabs -->
-        <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+        <div class="flex mb-4 bg-gray-100 rounded-lg p-1">
             <div id="login-tab" class="auth-tab flex-1 text-center active" onclick="showAuthTab('login')">
                 Login
             </div>
@@ -157,190 +160,189 @@
         </div>
         
         <!-- Login Form -->
-        <form id="login-form" class="auth-form space-y-4 active">
+        <form id="login-form" class="auth-form space-y-3 active">
             <div>
                 <label for="auth-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="auth-password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="login-text">Login</span>
                 <div id="login-loading" class="loading hidden ml-2"></div>
             </button>
         </form>
         
         <!-- Sign Up Form -->
-        <form id="signup-form" class="auth-form space-y-4 hidden">
+        <form id="signup-form" class="auth-form space-y-3 hidden">
             <div>
                 <label for="signup-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="signup-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="email" id="signup-email" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="signup-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="signup-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input type="password" id="confirm-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="confirm-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="signup-text">Sign Up</span>
                 <div id="signup-loading" class="loading hidden ml-2"></div>
             </button>
         </form>
         
         <!-- Forgot Password Form -->
-        <form id="forgot-password-form" class="auth-form space-y-4 hidden">
-            <div class="mb-4 text-sm text-gray-600">
+        <form id="forgot-password-form" class="auth-form space-y-3 hidden">
+            <div class="mb-2 text-sm text-gray-600">
                 Enter your email address and we'll send you a link to reset your password.
             </div>
             <div>
                 <label for="reset-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="reset-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="email" id="reset-email" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
-            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="reset-text">Send Reset Link</span>
                 <div id="reset-loading" class="loading hidden ml-2"></div>
             </button>
         </form>
         
         <!-- Reset Password Form (shown after clicking reset link) -->
-        <form id="reset-password-form" class="auth-form space-y-4 hidden">
-            <div class="mb-4 text-sm text-gray-600">
+        <form id="reset-password-form" class="auth-form space-y-3 hidden">
+            <div class="mb-2 text-sm text-gray-600">
                 Enter your new password below.
             </div>
             <div>
                 <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
-                <input type="password" id="new-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="new-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
-                <input type="password" id="confirm-new-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="confirm-new-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="update-password-text">Update Password</span>
                 <div id="update-password-loading" class="loading hidden ml-2"></div>
             </button>
         </form>
         
-        <button id="install-button" class="hidden w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">
+        <button id="install-button" class="hidden w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
             <i class="fas fa-download mr-2"></i>Download App
         </button>
     </div>
 
-    <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-6 sm:p-10">
-        <!-- Rest of the app content remains the same -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div class="flex items-center mb-4 sm:mb-0">
-                <i class="fas fa-hand-holding-usd text-3xl text-white mr-3"></i>
+    <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+            <div class="flex items-center mb-2 sm:mb-0">
+                <i class="fas fa-hand-holding-usd text-2xl text-white mr-2"></i>
                 <div>
-                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Money Lending Dashboard</h1>
-                    <p id="dashboard-date" class="text-sm text-white opacity-75">Today: Loading...</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-white">Money Lending Dashboard</h1>
+                    <p id="dashboard-date" class="text-xs text-white opacity-75">Today: Loading...</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <span id="user-id-display" class="text-sm text-white opacity-75">User ID: N/A</span>
-                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            <div class="flex items-center space-x-2">
+                <span id="user-id-display" class="text-xs text-white opacity-75">User ID: N/A</span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-md transition duration-150 ease-in-out text-sm">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-emerald-50 rounded-xl p-6 shadow-md border border-emerald-200 card-hover">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 compact-section">
+            <div class="bg-emerald-50 rounded-lg p-4 shadow-md border border-emerald-200 card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-lg font-medium text-emerald-800">Accounts Receivable</h3>
-                        <p id="receivable-total" class="text-3xl font-bold text-emerald-600 mt-2">R0.00</p>
+                        <h3 class="text-md font-medium text-emerald-800">Accounts Receivable</h3>
+                        <p id="receivable-total" class="text-2xl font-bold text-emerald-600 mt-1">R0.00</p>
                     </div>
-                    <i class="fas fa-money-bill-wave text-emerald-500 text-2xl"></i>
+                    <i class="fas fa-money-bill-wave text-emerald-500 text-xl"></i>
                 </div>
-                <div class="mt-4 text-sm text-emerald-700">
+                <div class="mt-2 text-xs text-emerald-700">
                     <p id="receivable-count">0 active loans</p>
                 </div>
             </div>
-            <div class="bg-rose-50 rounded-xl p-6 shadow-md border border-rose-200 card-hover">
+            <div class="bg-rose-50 rounded-lg p-4 shadow-md border border-rose-200 card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-lg font-medium text-rose-800">Accounts Payable</h3>
-                        <p id="payable-total" class="text-3xl font-bold text-rose-600 mt-2">R0.00</p>
+                        <h3 class="text-md font-medium text-rose-800">Accounts Payable</h3>
+                        <p id="payable-total" class="text-2xl font-bold text-rose-600 mt-1">R0.00</p>
                     </div>
-                    <i class="fas fa-credit-card text-rose-500 text-2xl"></i>
+                    <i class="fas fa-credit-card text-rose-500 text-xl"></i>
                 </div>
-                <div class="mt-4 text-sm text-rose-700">
+                <div class="mt-2 text-xs text-rose-700">
                     <p id="payable-count">0 payments received</p>
                 </div>
             </div>
-            <div class="bg-green-50 rounded-xl p-6 shadow-md border border-green-200 card-hover">
+            <div class="bg-green-50 rounded-lg p-4 shadow-md border border-green-200 card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-lg font-medium text-green-800">Net Interest</h3>
-                        <p id="net-interest-total" class="text-3xl font-bold text-green-600 mt-2">R0.00</p>
+                        <h3 class="text-md font-medium text-green-800">Net Interest</h3>
+                        <p id="net-interest-total" class="text-2xl font-bold text-green-600 mt-1">R0.00</p>
                     </div>
-                    <i class="fas fa-chart-line text-green-500 text-2xl"></i>
+                    <i class="fas fa-chart-line text-green-500 text-xl"></i>
                 </div>
-                <div class="mt-4 text-sm text-green-700">
+                <div class="mt-2 text-xs text-green-700">
                     <p id="overdue-count">0 overdue loans</p>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="bg-white rounded-xl p-6 shadow-md">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Loan Distribution</h3>
-                <canvas id="loan-chart" height="250"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 compact-section">
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Loan Distribution</h3>
+                <canvas id="loan-chart" height="200"></canvas>
             </div>
-            <div class="bg-white rounded-xl p-6 shadow-md">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
-                <div id="recent-activity" class="space-y-4 max-h-64 overflow-y-auto">
-                    <div class="flex items-center justify-center py-8 text-gray-500">
-                        <i class="fas fa-history text-3xl mr-3"></i>
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Recent Activity</h3>
+                <div id="recent-activity" class="space-y-2 max-h-48 overflow-y-auto">
+                    <div class="flex items-center justify-center py-4 text-gray-500">
+                        <i class="fas fa-history text-xl mr-2"></i>
                         <span>No recent activity</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-wrap gap-2 mb-8 border-b border-white border-opacity-30">
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">
-                <i class="fas fa-users mr-2"></i>Clients
+        <div class="flex flex-wrap gap-1 mb-4 border-b border-white border-opacity-30 compact-section">
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">
+                <i class="fas fa-users mr-1"></i>Clients
             </button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">
-                <i class="fas fa-exchange-alt mr-2"></i>Transactions
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">
+                <i class="fas fa-exchange-alt mr-1"></i>Transactions
             </button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-client')">
-                <i class="fas fa-user-plus mr-2"></i>Add Client
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-client')">
+                <i class="fas fa-user-plus mr-1"></i>Add Client
             </button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'payable')">
-                <i class="fas fa-money-check-alt mr-2"></i>Add Payment
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">
+                <i class="fas fa-hand-holding-usd mr-1"></i>Add Loan
             </button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">
-                <i class="fas fa-hand-holding-usd mr-2"></i>Add Loan
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'payable')">
+                <i class="fas fa-money-check-alt mr-1"></i>Add Payment
             </button>
         </div>
 
         <div id="clients" class="tab-content">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <h2 class="text-2xl font-semibold text-white mb-2 sm:mb-0">Client List</h2>
-                <div class="flex space-x-2">
-                    <input type="text" id="client-search" placeholder="Search clients..." class="px-4 py-2 rounded-md text-sm">
-                    <button id="export-clients" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
-                        <i class="fas fa-file-export mr-2"></i>Export
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+                <h2 class="text-xl font-semibold text-white mb-1 sm:mb-0">Client List</h2>
+                <div class="flex space-x-1">
+                    <input type="text" id="client-search" placeholder="Search clients..." class="px-3 py-1 rounded-md text-xs w-32">
+                    <button id="export-clients" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-md transition duration-150 ease-in-out text-xs">
+                        <i class="fas fa-file-export mr-1"></i>Export
                     </button>
                 </div>
             </div>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Debt (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Debt (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="client-list-body" class="bg-white divide-y divide-gray-200">
@@ -350,27 +352,27 @@
         </div>
 
         <div id="transactions" class="tab-content">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <h2 class="text-2xl font-semibold text-white mb-2 sm:mb-0">Transaction History</h2>
-                <div class="flex space-x-2">
-                    <input type="text" id="transaction-search" placeholder="Search transactions..." class="px-4 py-2 rounded-md text-sm">
-                    <button id="export-transactions" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
-                        <i class="fas fa-file-export mr-2"></i>Export
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+                <h2 class="text-xl font-semibold text-white mb-1 sm:mb-0">Transaction History</h2>
+                <div class="flex space-x-1">
+                    <input type="text" id="transaction-search" placeholder="Search transactions..." class="px-3 py-1 rounded-md text-xs w-32">
+                    <button id="export-transactions" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-md transition duration-150 ease-in-out text-xs">
+                        <i class="fas fa-file-export mr-1"></i>Export
                     </button>
                 </div>
             </div>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Rate (%)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Earned (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fees (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Due (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Rate (%)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Earned (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fees (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Due (R)</th>
                         </tr>
                     </thead>
                     <tbody id="transaction-list-body" class="bg-white divide-y divide-gray-200">
@@ -380,78 +382,78 @@
         </div>
 
         <div id="add-client" class="tab-content">
-            <h2 class="text-2xl font-semibold text-white mb-4">Add New Client</h2>
-            <form id="add-client-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 class="text-xl font-semibold text-white mb-2">Add New Client</h2>
+            <form id="add-client-form" class="bg-white p-4 rounded-lg shadow-md space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                        <label for="client-name" class="block text-sm font-medium text-gray-700">Client Name *</label>
-                        <input type="text" id="client-name" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Client Name" required>
+                        <label for="client-name" class="block text-xs font-medium text-gray-700">Client Name *</label>
+                        <input type="text" id="client-name" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Client Name" required>
                     </div>
                     <div>
-                        <label for="client-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input type="email" id="client-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Email Address">
+                        <label for="client-email" class="block text-xs font-medium text-gray-700">Email Address</label>
+                        <input type="email" id="client-email" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Email Address">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                        <label for="client-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                        <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Phone Number">
+                        <label for="client-phone" class="block text-xs font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Phone Number">
                     </div>
                     <div>
-                        <label for="client-address" class="block text-sm font-medium text-gray-700">Address</label>
-                        <input type="text" id="client-address" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Address">
+                        <label for="client-address" class="block text-xs font-medium text-gray-700">Address</label>
+                        <input type="text" id="client-address" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Address">
                     </div>
                 </div>
                 <div>
-                    <label for="client-notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                    <textarea id="client-notes" rows="3" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Additional notes about the client"></textarea>
+                    <label for="client-notes" class="block text-xs font-medium text-gray-700">Notes</label>
+                    <textarea id="client-notes" rows="2" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Additional notes about the client"></textarea>
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">
-                    <i class="fas fa-user-plus mr-2"></i>Add Client
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
+                    <i class="fas fa-user-plus mr-1"></i>Add Client
                 </button>
             </form>
         </div>
 
         <div id="add-transaction" class="tab-content">
-            <h2 class="text-2xl font-semibold text-white mb-4">Add New Transaction</h2>
-            <form id="add-transaction-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 class="text-xl font-semibold text-white mb-2">Add New Transaction</h2>
+            <form id="add-transaction-form" class="bg-white p-4 rounded-lg shadow-md space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                        <label for="client-select" class="block text-sm font-medium text-gray-700">Select Client *</label>
-                        <select id="client-select" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                        <label for="client-select" class="block text-xs font-medium text-gray-700">Select Client *</label>
+                        <select id="client-select" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
                             <option value="">-- Select a Client --</option>
                         </select>
                     </div>
                     <div>
-                        <label for="transaction-type" class="block text-sm font-medium text-gray-700">Transaction Type *</label>
-                        <select id="transaction-type" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                        <label for="transaction-type" class="block text-xs font-medium text-gray-700">Transaction Type *</label>
+                        <select id="transaction-type" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
                             <option value="receivable">Loan (Accounts Receivable)</option>
                             <option value="payable">Payment (Accounts Payable)</option>
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                        <label for="amount" class="block text-sm font-medium text-gray-700">Amount (R) *</label>
-                        <input type="number" id="amount" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Amount" step="0.01" required>
+                        <label for="amount" class="block text-xs font-medium text-gray-700">Amount (R) *</label>
+                        <input type="number" id="amount" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Amount" step="0.01" required>
                     </div>
                     <div id="loan-details" class="hidden">
-                        <label for="interest-rate" class="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
-                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1">
+                        <label for="interest-rate" class="block text-xs font-medium text-gray-700">Interest Rate (%)</label>
+                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1">
                     </div>
                 </div>
-                <div id="loan-details-2" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                <div id="loan-details-2" class="grid grid-cols-1 md:grid-cols-2 gap-3 hidden">
                     <div>
-                        <label for="due-date" class="block text-sm font-medium text-gray-700">Due Date</label>
-                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        <label for="due-date" class="block text-xs font-medium text-gray-700">Due Date</label>
+                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                     </div>
                     <div>
-                        <label for="transaction-notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                        <input type="text" id="transaction-notes" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Transaction notes">
+                        <label for="transaction-notes" class="block text-xs font-medium text-gray-700">Notes</label>
+                        <input type="text" id="transaction-notes" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Transaction notes">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">
-                    <i class="fas fa-plus-circle mr-2"></i>Add Transaction
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
+                    <i class="fas fa-plus-circle mr-1"></i>Add Transaction
                 </button>
             </form>
         </div>
@@ -459,9 +461,9 @@
 
     <div id="message-modal" class="modal">
         <div class="modal-content">
-            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
-            <p id="modal-message" class="text-gray-700 mb-6"></p>
-            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">Close</button>
+            <h3 id="modal-title" class="text-lg font-bold text-gray-800 mb-2"></h3>
+            <p id="modal-message" class="text-gray-700 mb-4 text-sm"></p>
+            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 rounded-md transition duration-150 ease-in-out text-sm">Close</button>
         </div>
     </div>
 
@@ -713,7 +715,7 @@
             if (filteredClients.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colspan="5" class="px-3 py-2 text-center text-xs text-gray-500">
                         No clients found matching your search.
                     </td>
                 `;
@@ -734,40 +736,40 @@
                 );
                 
                 const overdueBadge = hasOverdueLoans ? 
-                    '<span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 overdue">Overdue</span>' : 
+                    '<span class="ml-1 px-1 inline-flex text-xs leading-3 font-semibold rounded-full bg-red-100 text-red-800 overdue">Overdue</span>' : 
                     '';
 
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
                         <div class="flex items-center">
-                            <div class="h-10 w-10 flex-shrink-0 bg-emerald-100 rounded-full flex items-center justify-center">
-                                <span class="text-emerald-800 font-bold">${client.name.charAt(0).toUpperCase()}</span>
+                            <div class="h-8 w-8 flex-shrink-0 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <span class="text-emerald-800 font-bold text-xs">${client.name.charAt(0).toUpperCase()}</span>
                             </div>
-                            <div class="ml-4">
+                            <div class="ml-2">
                                 <div class="font-medium text-gray-900">${client.name}${overdueBadge}</div>
-                                <div class="text-gray-500">${client.notes || 'No notes'}</div>
+                                <div class="text-gray-500 text-xs">${client.notes || 'No notes'}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                         <div>${client.email || 'N/A'}</div>
                         <div>${client.phone || 'N/A'}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${balanceColor}">R${balance}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${balance > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold ${balanceColor}">R${balance}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${balance > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">
                             ${balance > 0 ? 'Has Debt' : 'Paid Up'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <td class="px-3 py-2 whitespace-nowrap text-right text-xs font-medium space-x-1">
                         <button onclick="downloadClientReport('${client.id}')" class="text-emerald-600 hover:text-emerald-900 font-bold" title="Download Report">
-                            <i class="fas fa-download"></i>
+                            <i class="fas fa-download text-xs"></i>
                         </button>
                         <button onclick="remindClient('${client.id}')" class="text-orange-500 hover:text-orange-700 font-bold" title="Send Reminder">
-                            <i class="fas fa-bell"></i>
+                            <i class="fas fa-bell text-xs"></i>
                         </button>
                         <button onclick="deleteClient('${client.id}')" class="text-red-600 hover:text-red-900 font-bold" title="Delete Client">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash text-xs"></i>
                         </button>
                     </td>
                 `;
@@ -790,7 +792,7 @@
             
             // If no data, show a message
             if (clientNames.length === 0) {
-                loanChartCanvas.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No active loans to display</div>';
+                loanChartCanvas.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">No active loans to display</div>';
                 return;
             }
             
@@ -821,6 +823,12 @@
                     plugins: {
                         legend: {
                             position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 10
+                                }
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -844,8 +852,8 @@
             
             if (recentTransactions.length === 0) {
                 recentActivity.innerHTML = `
-                    <div class="flex items-center justify-center py-8 text-gray-500">
-                        <i class="fas fa-history text-3xl mr-3"></i>
+                    <div class="flex items-center justify-center py-4 text-gray-500 text-xs">
+                        <i class="fas fa-history text-lg mr-2"></i>
                         <span>No recent activity</span>
                     </div>
                 `;
@@ -859,18 +867,18 @@
                 const amount = transaction.amount.toFixed(2);
                 
                 const activityItem = document.createElement('div');
-                activityItem.className = 'flex items-start p-3 bg-gray-50 rounded-lg';
+                activityItem.className = 'flex items-start p-2 bg-gray-50 rounded text-xs';
                 activityItem.innerHTML = `
-                    <div class="flex-shrink-0 mt-1">
-                        <div class="h-8 w-8 rounded-full flex items-center justify-center ${isReceivable ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}">
-                            <i class="fas ${isReceivable ? 'fa-hand-holding-usd' : 'fa-money-check-alt'} text-sm"></i>
+                    <div class="flex-shrink-0 mt-0.5">
+                        <div class="h-6 w-6 rounded-full flex items-center justify-center ${isReceivable ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}">
+                            <i class="fas ${isReceivable ? 'fa-hand-holding-usd' : 'fa-money-check-alt'} text-xs"></i>
                         </div>
                     </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-900">
+                    <div class="ml-2">
+                        <p class="font-medium text-gray-900">
                             ${isReceivable ? 'Loan to' : 'Payment from'} ${clientName}
                         </p>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-gray-500">
                             R${amount} • ${transaction.date}
                         </p>
                     </div>
@@ -1050,7 +1058,7 @@
             if (filteredTransactions.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colspan="8" class="px-3 py-2 text-center text-xs text-gray-500">
                         No transactions found matching your search.
                     </td>
                 `;
@@ -1072,18 +1080,18 @@
                 
                 row.className = rowClass;
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.date}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${clientName}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeColor}">
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${t.date}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-900">${clientName}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs">
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${typeColor}">
                             ${t.type === 'receivable' ? 'Loan' : 'Payment'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R${t.amount.toFixed(2)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.interest_rate ? t.interest_rate.toFixed(2) + '%' : 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${interestEarned}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${lateFees}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">R${totalDue}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">R${t.amount.toFixed(2)}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${t.interest_rate ? t.interest_rate.toFixed(2) + '%' : 'N/A'}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${interestEarned}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${lateFees}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold text-gray-900">R${totalDue}</td>
                 `;
                 transactionListBody.appendChild(row);
             });
