@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -133,7 +132,7 @@
             color: white;
         }
         .compact-section {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -261,7 +260,7 @@
                     <i class="fas fa-money-bill-wave text-emerald-500 text-xl"></i>
                 </div>
                 <div class="mt-2 text-xs text-emerald-700">
-                    <p id="receivable-count">0 active loans</p>
+                    <p id="receivable-count">Money you will receive</p>
                 </div>
             </div>
             <div class="bg-rose-50 rounded-lg p-4 shadow-md border border-rose-200 card-hover">
@@ -273,13 +272,13 @@
                     <i class="fas fa-credit-card text-rose-500 text-xl"></i>
                 </div>
                 <div class="mt-2 text-xs text-rose-700">
-                    <p id="payable-count">0 payments received</p>
+                    <p id="payable-count">Money you owe</p>
                 </div>
             </div>
             <div class="bg-green-50 rounded-lg p-4 shadow-md border border-green-200 card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-md font-medium text-green-800">Net Interest</h3>
+                        <h3 class="text-md font-medium text-green-800">Net Balance</h3>
                         <p id="net-interest-total" class="text-2xl font-bold text-green-600 mt-1">R0.00</p>
                     </div>
                     <i class="fas fa-chart-line text-green-500 text-xl"></i>
@@ -290,18 +289,12 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 compact-section">
-            <div class="bg-white rounded-lg p-4 shadow-md">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Loan Distribution</h3>
-                <canvas id="loan-chart" height="200"></canvas>
-            </div>
-            <div class="bg-white rounded-lg p-4 shadow-md">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Recent Activity</h3>
-                <div id="recent-activity" class="space-y-2 max-h-48 overflow-y-auto">
-                    <div class="flex items-center justify-center py-4 text-gray-500">
-                        <i class="fas fa-history text-xl mr-2"></i>
-                        <span>No recent activity</span>
-                    </div>
+        <div class="bg-white rounded-lg p-4 shadow-md mb-4 compact-section">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Recent Activity</h3>
+            <div id="recent-activity" class="space-y-2 max-h-40 overflow-y-auto">
+                <div class="flex items-center justify-center py-4 text-gray-500">
+                    <i class="fas fa-history text-xl mr-2"></i>
+                    <span>No recent activity</span>
                 </div>
             </div>
         </div>
@@ -317,10 +310,10 @@
                 <i class="fas fa-user-plus mr-1"></i>Add Client
             </button>
             <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">
-                <i class="fas fa-hand-holding-usd mr-1"></i>Add Loan
+                <i class="fas fa-hand-holding-usd mr-1"></i>Add Money Receivable
             </button>
             <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'payable')">
-                <i class="fas fa-money-check-alt mr-1"></i>Add Payment
+                <i class="fas fa-money-check-alt mr-1"></i>Add Money Payable
             </button>
         </div>
 
@@ -340,7 +333,7 @@
                         <tr>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Debt (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance (R)</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -368,11 +361,11 @@
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (R)</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Rate (%)</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Earned (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest (R)</th>
                             <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fees (R)</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Due (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total (R)</th>
                         </tr>
                     </thead>
                     <tbody id="transaction-list-body" class="bg-white divide-y divide-gray-200">
@@ -427,8 +420,8 @@
                     <div>
                         <label for="transaction-type" class="block text-xs font-medium text-gray-700">Transaction Type *</label>
                         <select id="transaction-type" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
-                            <option value="receivable">Loan (Accounts Receivable)</option>
-                            <option value="payable">Payment (Accounts Payable)</option>
+                            <option value="receivable">Money Receivable (You will receive)</option>
+                            <option value="payable">Money Payable (You owe)</option>
                         </select>
                     </div>
                 </div>
@@ -520,12 +513,10 @@
         const exportClientsBtn = document.getElementById('export-clients');
         const exportTransactionsBtn = document.getElementById('export-transactions');
         const recentActivity = document.getElementById('recent-activity');
-        const loanChartCanvas = document.getElementById('loan-chart');
 
         let clients = [];
         let transactions = [];
         let deferredPrompt; // Variable to store the install event
-        let loanChart = null;
 
         // Update dashboard date
         function updateDashboardDate() {
@@ -657,7 +648,7 @@
         function calculateMetrics() {
             let receivable = 0;
             let payable = 0;
-            let netInterest = 0;
+            let netBalance = 0;
             let receivableCount = 0;
             let payableCount = 0;
             let overdueCount = 0;
@@ -667,20 +658,21 @@
 
             transactions.forEach(t => {
                 if (t.type === 'receivable') {
+                    // Money you will receive
                     const totalDue = t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
                     receivable += totalDue;
-                    netInterest += (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
                     receivableCount++;
                     
                     if (clientBalances[t.client_id] !== undefined) {
                         clientBalances[t.client_id] += totalDue;
                     }
                     
-                    // Check if loan is overdue
+                    // Check if receivable is overdue
                     if (t.due_date && new Date(t.due_date) < new Date()) {
                         overdueCount++;
                     }
                 } else if (t.type === 'payable') {
+                    // Money you owe
                     payable += t.amount;
                     payableCount++;
                     if (clientBalances[t.client_id] !== undefined) {
@@ -689,15 +681,15 @@
                 }
             });
 
+            // Net balance = Receivable - Payable
+            netBalance = receivable - payable;
+
             dashboard.receivableTotal.textContent = `R${receivable.toFixed(2)}`;
             dashboard.payableTotal.textContent = `R${payable.toFixed(2)}`;
-            dashboard.netInterestTotal.textContent = `R${netInterest.toFixed(2)}`;
-            dashboard.receivableCount.textContent = `${receivableCount} active loans`;
-            dashboard.payableCount.textContent = `${payableCount} payments received`;
-            dashboard.overdueCount.textContent = `${overdueCount} overdue loans`;
+            dashboard.netInterestTotal.textContent = `R${netBalance.toFixed(2)}`;
+            dashboard.overdueCount.textContent = `${overdueCount} overdue receivables`;
 
             renderClientList(clientBalances);
-            updateLoanChart(clientBalances);
             updateRecentActivity();
         }
 
@@ -726,16 +718,16 @@
             filteredClients.forEach(client => {
                 const row = document.createElement('tr');
                 const balance = (clientBalances[client.id] || 0).toFixed(2);
-                const balanceColor = balance > 0 ? 'text-rose-600' : 'text-green-600';
+                const balanceColor = balance > 0 ? 'text-emerald-600' : (balance < 0 ? 'text-rose-600' : 'text-gray-600');
 
-                const hasOverdueLoans = transactions.some(t => 
+                const hasOverdueReceivables = transactions.some(t => 
                     t.client_id === client.id && 
                     t.type === 'receivable' && 
                     t.due_date && 
                     new Date(t.due_date) < new Date()
                 );
                 
-                const overdueBadge = hasOverdueLoans ? 
+                const overdueBadge = hasOverdueReceivables ? 
                     '<span class="ml-1 px-1 inline-flex text-xs leading-3 font-semibold rounded-full bg-red-100 text-red-800 overdue">Overdue</span>' : 
                     '';
 
@@ -757,8 +749,8 @@
                     </td>
                     <td class="px-3 py-2 whitespace-nowrap text-xs font-bold ${balanceColor}">R${balance}</td>
                     <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
-                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${balance > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">
-                            ${balance > 0 ? 'Has Debt' : 'Paid Up'}
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${balance > 0 ? 'bg-emerald-100 text-emerald-800' : (balance < 0 ? 'bg-rose-100 text-rose-800' : 'bg-gray-100 text-gray-800')}">
+                            ${balance > 0 ? 'You Owe' : (balance < 0 ? 'Owes You' : 'Settled')}
                         </span>
                     </td>
                     <td class="px-3 py-2 whitespace-nowrap text-right text-xs font-medium space-x-1">
@@ -774,71 +766,6 @@
                     </td>
                 `;
                 clientListBody.appendChild(row);
-            });
-        }
-
-        function updateLoanChart(clientBalances) {
-            // Prepare data for the chart
-            const clientNames = [];
-            const clientDebts = [];
-            
-            clients.forEach(client => {
-                const balance = clientBalances[client.id] || 0;
-                if (balance > 0) {
-                    clientNames.push(client.name);
-                    clientDebts.push(balance);
-                }
-            });
-            
-            // If no data, show a message
-            if (clientNames.length === 0) {
-                loanChartCanvas.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">No active loans to display</div>';
-                return;
-            }
-            
-            // Create or update the chart
-            const ctx = loanChartCanvas.getContext('2d');
-            
-            if (loanChart) {
-                loanChart.destroy();
-            }
-            
-            loanChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: clientNames,
-                    datasets: [{
-                        data: clientDebts,
-                        backgroundColor: [
-                            '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
-                            '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#ec4899'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 12,
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `R${context.raw.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    }
-                }
             });
         }
 
@@ -870,13 +797,13 @@
                 activityItem.className = 'flex items-start p-2 bg-gray-50 rounded text-xs';
                 activityItem.innerHTML = `
                     <div class="flex-shrink-0 mt-0.5">
-                        <div class="h-6 w-6 rounded-full flex items-center justify-center ${isReceivable ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}">
+                        <div class="h-6 w-6 rounded-full flex items-center justify-center ${isReceivable ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
                             <i class="fas ${isReceivable ? 'fa-hand-holding-usd' : 'fa-money-check-alt'} text-xs"></i>
                         </div>
                     </div>
                     <div class="ml-2">
                         <p class="font-medium text-gray-900">
-                            ${isReceivable ? 'Loan to' : 'Payment from'} ${clientName}
+                            ${isReceivable ? 'Money receivable from' : 'Money payable to'} ${clientName}
                         </p>
                         <p class="text-gray-500">
                             R${amount} • ${transaction.date}
@@ -923,17 +850,17 @@
                 showNotification('Client not found.', 'error');
                 return;
             }
-            const overdueLoans = transactions.filter(t => t.client_id === clientId && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
+            const overdueReceivables = transactions.filter(t => t.client_id === clientId && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
 
             let message = `Hello ${client.name},<br><br>`;
-            if (overdueLoans.length > 0) {
-                message += "This is a friendly reminder that you have one or more overdue loan payments:<br><br>";
-                overdueLoans.forEach(loan => {
-                    message += `Loan of **R${loan.amount.toFixed(2)}** was due on **${loan.due_date}**.<br>The current outstanding amount is **R${(loan.amount + (loan.interest_earned || 0) + (parseFloat(loan.late_fees) || 0)).toFixed(2)}**.<br><br>`;
+            if (overdueReceivables.length > 0) {
+                message += "This is a friendly reminder that you have one or more overdue receivables:<br><br>";
+                overdueReceivables.forEach(receivable => {
+                    message += `Amount of **R${receivable.amount.toFixed(2)}** was due on **${receivable.due_date}**.<br>The current outstanding amount is **R${(receivable.amount + (receivable.interest_earned || 0) + (parseFloat(receivable.late_fees) || 0)).toFixed(2)}**.<br><br>`;
                 });
                 message += "Please settle the outstanding balance as soon as possible.<br><br>Thank you!";
             } else {
-                message += "This client has no overdue loans at this time. All payments are up to date.<br><br>Thank you!";
+                message += "This client has no overdue receivables at this time. All payments are up to date.<br><br>Thank you!";
             }
 
             showMessage('Reminder', message);
@@ -979,8 +906,8 @@
                 doc.text("Transaction History:", margin, y);
                 y += lineHeight;
                 
-                const headers = ["Date", "Type", "Principal (R)", "Interest (R)", "Late Fees (R)", "Total Due (R)"];
-                const columnWidths = [25, 20, 25, 20, 25, 25];
+                const headers = ["Date", "Type", "Amount (R)", "Interest (R)", "Late Fees (R)", "Total (R)"];
+                const columnWidths = [25, 25, 20, 20, 20, 20];
                 let x = margin;
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "bold");
@@ -999,7 +926,7 @@
                     y += lineHeight;
                 } else {
                     clientTransactions.forEach(t => {
-                        const type = t.type === 'receivable' ? 'Loan' : 'Payment';
+                        const type = t.type === 'receivable' ? 'Receivable' : 'Payable';
                         const interestEarned = t.interest_earned !== undefined ? t.interest_earned.toFixed(2) : 'N/A';
                         const lateFees = t.late_fees !== undefined ? parseFloat(t.late_fees).toFixed(2) : '0.00';
                         const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
@@ -1074,7 +1001,7 @@
                 const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
                 const typeColor = t.type === 'receivable' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
                 
-                // Check if transaction is overdue
+                // Check if receivable is overdue
                 const isOverdue = t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date();
                 const rowClass = isOverdue ? 'bg-red-50' : '';
                 
@@ -1084,7 +1011,7 @@
                     <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-900">${clientName}</td>
                     <td class="px-3 py-2 whitespace-nowrap text-xs">
                         <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${typeColor}">
-                            ${t.type === 'receivable' ? 'Loan' : 'Payment'}
+                            ${t.type === 'receivable' ? 'Receivable' : 'Payable'}
                         </span>
                     </td>
                     <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">R${t.amount.toFixed(2)}</td>
@@ -1509,7 +1436,7 @@
             transactions.forEach(transaction => {
                 const client = clients.find(c => c.id === transaction.client_id);
                 const clientName = client ? client.name : 'Unknown';
-                const type = transaction.type === 'receivable' ? 'Loan' : 'Payment';
+                const type = transaction.type === 'receivable' ? 'Receivable' : 'Payable';
                 const total = transaction.amount + (transaction.interest_earned || 0) + (parseFloat(transaction.late_fees) || 0);
                 
                 x = margin;
