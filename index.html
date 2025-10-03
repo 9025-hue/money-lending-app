@@ -1,19 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#10b981"/>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Lending App</title>
+    <meta name="theme-color" content="#10b981"/>
+    
+    <!-- Inline Tailwind CSS to avoid CDN warning -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
+        /* Custom styles to reduce Tailwind dependency */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 1rem;
+        }
+        @media (min-width: 640px) {
+            body {
+                padding: 1.5rem;
+            }
         }
         .tab-content {
             display: none;
@@ -22,8 +32,9 @@
             display: block;
         }
         .tab-button.active {
-            background-color: #10b981;
-            color: white;
+            background-color: rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+            font-weight: 600;
         }
         .modal {
             display: none;
@@ -55,216 +66,599 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        input, select, textarea {
-            border: 1px solid #d1d5db;
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
         }
-        input:focus, select:focus, textarea:focus {
-            border-color: #10b981;
-            ring-color: #10b981;
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.success {
+            background-color: #10b981;
+        }
+        .notification.error {
+            background-color: #ef4444;
+        }
+        .notification.info {
+            background-color: #3b82f6;
+        }
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .overdue {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .auth-tab {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .auth-tab.active {
+            background-color: #10b981;
+            color: white;
+        }
+        .compact-section {
+            margin-bottom: 1rem;
+        }
+        
+        /* Custom grid and spacing */
+        .custom-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        .custom-grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 768px) {
+            .custom-grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 1024px) {
+            .custom-grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
-<body class="p-4 sm:p-8">
-<button id="install-button" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
-    Download App
-</button>
-    <!-- Login/Signup Container -->
-    <div id="auth-container" class="max-w-md mx-auto my-16 p-8 bg-white rounded-xl shadow-2xl">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Money Lending App</h1>
-        <form id="auth-form" class="space-y-4">
+<body>
+
+    <div id="auth-container" class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-2xl">
+        <div class="text-center mb-4">
+            <i class="fas fa-hand-holding-usd text-4xl text-emerald-600 mb-3"></i>
+            <h1 class="text-2xl font-bold text-gray-800">Money Lending App</h1>
+            <p class="text-gray-600 mt-1 text-sm">Manage your lending business efficiently</p>
+        </div>
+        
+        <!-- Auth Tabs -->
+        <div class="flex mb-4 bg-gray-100 rounded-lg p-1">
+            <div id="login-tab" class="auth-tab flex-1 text-center active" onclick="showAuthTab('login')">
+                Login
+            </div>
+            <div id="signup-tab" class="auth-tab flex-1 text-center" onclick="showAuthTab('signup')">
+                Sign Up
+            </div>
+            <div id="forgot-password-tab" class="auth-tab flex-1 text-center" onclick="showAuthTab('forgot-password')">
+                Reset Password
+            </div>
+        </div>
+        
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form space-y-3 active">
             <div>
                 <label for="auth-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
+                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="auth-password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
+                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
-            <button type="submit" id="login-button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Login</button>
-            <button type="submit" id="signup-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Sign Up</button>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+                <span id="login-text">Login</span>
+                <div id="login-loading" class="loading hidden ml-2"></div>
+            </button>
         </form>
+        
+        <!-- Sign Up Form -->
+        <form id="signup-form" class="auth-form space-y-3 hidden">
+            <div>
+                <label for="signup-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="signup-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+            </div>
+            <div>
+                <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="signup-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+            </div>
+            <div>
+                <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input type="password" id="confirm-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+                <span id="signup-text">Sign Up</span>
+                <div id="signup-loading" class="loading hidden ml-2"></div>
+            </button>
+        </form>
+        
+        <!-- Forgot Password Form -->
+        <form id="forgot-password-form" class="auth-form space-y-3 hidden">
+            <div class="mb-2 text-sm text-gray-600">
+                Enter your email address and we'll send you a link to reset your password.
+            </div>
+            <div>
+                <label for="reset-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="reset-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+            </div>
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+                <span id="reset-text">Send Reset Link</span>
+                <div id="reset-loading" class="loading hidden ml-2"></div>
+            </button>
+        </form>
+        
+        <!-- Reset Password Form (shown after clicking reset link) -->
+        <form id="reset-password-form" class="auth-form space-y-3 hidden">
+            <div class="mb-2 text-sm text-gray-600">
+                Enter your new password below.
+            </div>
+            <div>
+                <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+                <input type="password" id="new-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+            </div>
+            <div>
+                <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                <input type="password" id="confirm-new-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+                <span id="update-password-text">Update Password</span>
+                <div id="update-password-loading" class="loading hidden ml-2"></div>
+            </button>
+        </form>
+        
+        <button id="install-button" class="hidden w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
+            <i class="fas fa-download mr-2"></i>Download App
+        </button>
+
+        <!-- Debug button -->
+        <div class="mt-4 text-center">
+            <button id="debug-session" class="text-xs text-gray-500 underline">
+                Check Session Status
+            </button>
+        </div>
     </div>
 
-    <!-- Main App Container -->
-    <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-6 sm:p-10">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl sm:text-4xl font-bold text-white">Money Lending Dashboard</h1>
-            <div class="flex items-center space-x-4">
-                <span id="user-id-display" class="text-sm text-white opacity-75">User ID: N/A</span>
-                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">Logout</button>
+    <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+            <div class="flex items-center mb-2 sm:mb-0">
+                <i class="fas fa-hand-holding-usd text-2xl text-white mr-2"></i>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-white">Money Lending Dashboard</h1>
+                    <p id="dashboard-date" class="text-xs text-white opacity-75">Today: Loading...</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span id="user-id-display" class="text-xs text-white opacity-75">User ID: N/A</span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-md transition duration-150 ease-in-out text-sm">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </button>
             </div>
         </div>
 
-        <!-- Dashboard Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-emerald-50 rounded-xl p-6 shadow-md border border-emerald-200">
-                <h3 class="text-lg font-medium text-emerald-800">Accounts Receivable</h3>
-                <p id="receivable-total" class="text-3xl font-bold text-emerald-600 mt-2">R0.00</p>
+        <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-3 gap-4 mb-4 compact-section">
+            <div class="bg-emerald-50 rounded-lg p-4 shadow-md border border-emerald-200 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-md font-medium text-emerald-800">Accounts Receivable</h3>
+                        <p id="receivable-total" class="text-2xl font-bold text-emerald-600 mt-1">R0.00</p>
+                    </div>
+                    <i class="fas fa-money-bill-wave text-emerald-500 text-xl"></i>
+                </div>
+                <div class="mt-2 text-xs text-emerald-700">
+                    <p id="receivable-count">Money you will receive</p>
+                </div>
             </div>
-            <div class="bg-rose-50 rounded-xl p-6 shadow-md border border-rose-200">
-                <h3 class="text-lg font-medium text-rose-800">Accounts Payable</h3>
-                <p id="payable-total" class="text-3xl font-bold text-rose-600 mt-2">R0.00</p>
+            <div class="bg-rose-50 rounded-lg p-4 shadow-md border border-rose-200 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-md font-medium text-rose-800">Accounts Payable</h3>
+                        <p id="payable-total" class="text-2xl font-bold text-rose-600 mt-1">R0.00</p>
+                    </div>
+                    <i class="fas fa-credit-card text-rose-500 text-xl"></i>
+                </div>
+                <div class="mt-2 text-xs text-rose-700">
+                    <p id="payable-count">Money you owe</p>
+                </div>
             </div>
-            <div class="bg-green-50 rounded-xl p-6 shadow-md border border-green-200">
-                <h3 class="text-lg font-medium text-green-800">Net Interest</h3>
-                <p id="net-interest-total" class="text-3xl font-bold text-green-600 mt-2">R0.00</p>
+            <div class="bg-green-50 rounded-lg p-4 shadow-md border border-green-200 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-md font-medium text-green-800">Net Balance</h3>
+                        <p id="net-interest-total" class="text-2xl font-bold text-green-600 mt-1">R0.00</p>
+                    </div>
+                    <i class="fas fa-chart-line text-green-500 text-xl"></i>
+                </div>
+                <div class="mt-2 text-xs text-green-700">
+                    <p id="overdue-count">0 overdue receivables</p>
+                </div>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex flex-wrap gap-2 mb-8 border-b border-white border-opacity-30">
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">Clients</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">Transactions</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-client')">Add Client</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'payable')">Add Payment</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">Add Transaction</button>
+        <div class="bg-white rounded-lg p-4 shadow-md mb-4 compact-section">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Recent Activity</h3>
+            <div id="recent-activity" class="space-y-2 max-h-40 overflow-y-auto">
+                <div class="flex items-center justify-center py-4 text-gray-500">
+                    <i class="fas fa-history text-xl mr-2"></i>
+                    <span>No recent activity</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Tab Content -->
-        <div id="clients" class="tab-content">
-            <h2 class="text-2xl font-semibold text-white mb-4">Client List</h2>
+        <div class="flex flex-wrap gap-1 mb-4 border-b border-white border-opacity-30 compact-section">
+            <button class="tab-button active px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">
+                <i class="fas fa-users mr-1"></i>Clients
+            </button>
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">
+                <i class="fas fa-exchange-alt mr-1"></i>Transactions
+            </button>
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-client')">
+                <i class="fas fa-user-plus mr-1"></i>Add Client
+            </button>
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'receivable')">
+                <i class="fas fa-hand-holding-usd mr-1"></i>Add Money Receivable
+            </button>
+            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('add-transaction', 'payable')">
+                <i class="fas fa-money-check-alt mr-1"></i>Add Money Payable
+            </button>
+        </div>
+
+        <div id="clients" class="tab-content active">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+                <h2 class="text-xl font-semibold text-white mb-1 sm:mb-0">Client List</h2>
+                <div class="flex space-x-1">
+                    <input type="text" id="client-search" placeholder="Search clients..." class="px-3 py-1 rounded-md text-xs w-32">
+                    <button id="export-clients" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-md transition duration-150 ease-in-out text-xs">
+                        <i class="fas fa-file-export mr-1"></i>Export
+                    </button>
+                </div>
+            </div>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Debt (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="client-list-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Client data will be inserted here by JavaScript -->
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div id="transactions" class="tab-content">
-            <h2 class="text-2xl font-semibold text-white mb-4">Transaction History</h2>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+                <h2 class="text-xl font-semibold text-white mb-1 sm:mb-0">Transaction History</h2>
+                <div class="flex space-x-1">
+                    <input type="text" id="transaction-search" placeholder="Search transactions..." class="px-3 py-1 rounded-md text-xs w-32">
+                    <button id="export-transactions" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-md transition duration-150 ease-in-out text-xs">
+                        <i class="fas fa-file-export mr-1"></i>Export
+                    </button>
+                </div>
+            </div>
             <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Rate (%)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Earned (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fees (R)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Due (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Rate (%)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fees (R)</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total (R)</th>
                         </tr>
                     </thead>
                     <tbody id="transaction-list-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Transaction data will be inserted here by JavaScript -->
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div id="add-client" class="tab-content">
-            <h2 class="text-2xl font-semibold text-white mb-4">Add New Client</h2>
-            <form id="add-client-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
-                <div>
-                    <label for="client-name" class="block text-sm font-medium text-gray-700">Client Name</label>
-                    <input type="text" id="client-name" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Client Name" required>
+            <h2 class="text-xl font-semibold text-white mb-2">Add New Client</h2>
+            <form id="add-client-form" class="bg-white p-4 rounded-lg shadow-md space-y-3">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
+                    <div>
+                        <label for="client-name" class="block text-xs font-medium text-gray-700">Client Name *</label>
+                        <input type="text" id="client-name" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Client Name" required>
+                    </div>
+                    <div>
+                        <label for="client-email" class="block text-xs font-medium text-gray-700">Email Address</label>
+                        <input type="email" id="client-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Email Address">
+                    </div>
+                </div>
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
+                    <div>
+                        <label for="client-phone" class="block text-xs font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Phone Number">
+                    </div>
+                    <div>
+                        <label for="client-address" class="block text-xs font-medium text-gray-700">Address</label>
+                        <input type="text" id="client-address" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Address">
+                    </div>
                 </div>
                 <div>
-                    <label for="client-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" id="client-email" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Email Address">
+                    <label for="client-notes" class="block text-xs font-medium text-gray-700">Notes</label>
+                    <textarea id="client-notes" rows="2" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Additional notes about the client"></textarea>
                 </div>
-                <div>
-                    <label for="client-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Phone Number">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Add Client</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
+                    <i class="fas fa-user-plus mr-1"></i>Add Client
+                </button>
             </form>
         </div>
 
         <div id="add-transaction" class="tab-content">
-            <h2 class="text-2xl font-semibold text-white mb-4">Add New Transaction</h2>
-            <form id="add-transaction-form" class="bg-white p-6 rounded-xl shadow-md space-y-4">
-                <div>
-                    <label for="client-select" class="block text-sm font-medium text-gray-700">Select Client:</label>
-                    <select id="client-select" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
-                        <option value="">-- Select a Client --</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="transaction-type" class="block text-sm font-medium text-gray-700">Transaction Type:</label>
-                    <select id="transaction-type" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" required>
-                        <option value="receivable">Loan Given (Accounts Receivable)</option>
-                        <option value="payable">Loan Received (Accounts Payable)</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount (R):</label>
-                    <input type="number" id="amount" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="Amount" step="0.01" required>
-                </div>
-                <div id="loan-details" class="space-y-4 hidden">
+            <h2 class="text-xl font-semibold text-white mb-2">Add New Transaction</h2>
+            <form id="add-transaction-form" class="bg-white p-4 rounded-lg shadow-md space-y-3">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
                     <div>
-                        <label for="interest-rate" class="block text-sm font-medium text-gray-700">Interest Rate (% for the entire loan):</label>
-                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3" placeholder="e.g., 40" step="0.1">
+                        <label for="client-select" class="block text-xs font-medium text-gray-700">Select Client *</label>
+                        <select id="client-select" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                            <option value="">-- Select a Client --</option>
+                        </select>
                     </div>
                     <div>
-                        <label for="due-date" class="block text-sm font-medium text-gray-700">Due Date:</label>
-                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-3">
+                        <label for="transaction-type" class="block text-xs font-medium text-gray-700">Transaction Type *</label>
+                        <select id="transaction-type" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                            <option value="receivable">Money Receivable (You will receive)</option>
+                            <option value="payable">Money Payable (You owe)</option>
+                        </select>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out">Add Transaction</button>
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
+                    <div>
+                        <label for="amount" class="block text-xs font-medium text-gray-700">Amount (R) *</label>
+                        <input type="number" id="amount" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Amount" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="interest-rate" class="block text-xs font-medium text-gray-700">Interest Rate (%)</label>
+                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1" value="0">
+                    </div>
+                </div>
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
+                    <div>
+                        <label for="due-date" class="block text-xs font-medium text-gray-700">Due Date</label>
+                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label for="transaction-notes" class="block text-xs font-medium text-gray-700">Notes</label>
+                        <input type="text" id="transaction-notes" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Transaction notes">
+                    </div>
+                </div>
+                
+                <!-- Interest Calculation Preview -->
+                <div id="interest-preview" class="bg-gray-50 p-3 rounded-md border border-gray-200 hidden">
+                    <h4 class="text-xs font-medium text-gray-700 mb-2">Interest Calculation Preview</h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="text-gray-600">Principal Amount:</div>
+                        <div class="text-gray-800 font-medium" id="preview-principal">R0.00</div>
+                        
+                        <div class="text-gray-600">Interest Rate:</div>
+                        <div class="text-gray-800 font-medium" id="preview-interest-rate">0%</div>
+                        
+                        <div class="text-gray-600">Interest Amount:</div>
+                        <div class="text-gray-800 font-medium" id="preview-interest-amount">R0.00</div>
+                        
+                        <div class="text-gray-600">Total Amount:</div>
+                        <div class="text-gray-800 font-bold" id="preview-total-amount">R0.00</div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
+                    <i class="fas fa-plus-circle mr-1"></i>Add Transaction
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- Custom Modal for Reminders & Messages -->
     <div id="message-modal" class="modal">
         <div class="modal-content">
-            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
-            <p id="modal-message" class="text-gray-700 mb-6"></p>
-            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">Close</button>
+            <h3 id="modal-title" class="text-lg font-bold text-gray-800 mb-2"></h3>
+            <p id="modal-message" class="text-gray-700 mb-4 text-sm"></p>
+            <button onclick="closeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 rounded-md transition duration-150 ease-in-out text-sm">Close</button>
         </div>
     </div>
+
+    <div id="notification" class="notification"></div>
 
     <script type="module">
         // --- Supabase Imports ---
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         
         // --- Supabase Configuration ---
-        const SUPABASE_URL = 'https://azncsbqyjzqhxecagevm.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bmNzYnF5anpxaHhlY2FnZXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzUxODcsImV4cCI6MjA3MDY1MTE4N30.fGe2JVhV2JPHnWg8xabO4wZVoflqhroen0SqTS2FO6c'
+        const SUPABASE_URL = 'https://aitfzvzkwuevvjrafphs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdGZ6dnprd3VldnZqcmFmcGhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODM5ODMsImV4cCI6MjA3NTA1OTk4M30.ozABWP0Lc4JY-2vFA5u9evf-xUp1O-FCODFYEJUvdJw';
         
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true
+            }
+        });
+        
         let userId = null;
+
+        // Debug function
+        function debugAuth(message, data = null) {
+            console.log(`🔐 AUTH DEBUG: ${message}`, data);
+        }
 
         // DOM elements
         const authContainer = document.getElementById('auth-container');
         const appContainer = document.getElementById('app-container');
-        const authForm = document.getElementById('auth-form');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const forgotPasswordForm = document.getElementById('forgot-password-form');
+        const resetPasswordForm = document.getElementById('reset-password-form');
         const logoutButton = document.getElementById('logout-button');
         const userIdDisplay = document.getElementById('user-id-display');
+        const installButton = document.getElementById('install-button');
+        const dashboardDate = document.getElementById('dashboard-date');
 
         const dashboard = {
             receivableTotal: document.getElementById('receivable-total'),
             payableTotal: document.getElementById('payable-total'),
-            netInterestTotal: document.getElementById('net-interest-total')
+            netInterestTotal: document.getElementById('net-interest-total'),
+            receivableCount: document.getElementById('receivable-count'),
+            payableCount: document.getElementById('payable-count'),
+            overdueCount: document.getElementById('overdue-count')
         };
+        
         const clientListBody = document.getElementById('client-list-body');
         const transactionListBody = document.getElementById('transaction-list-body');
         const clientSelect = document.getElementById('client-select');
         const addClientForm = document.getElementById('add-client-form');
         const addTransactionForm = document.getElementById('add-transaction-form');
         const transactionTypeSelect = document.getElementById('transaction-type');
-        const loanDetailsDiv = document.getElementById('loan-details');
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
         const messageModal = document.getElementById('message-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
+        const notification = document.getElementById('notification');
+        const clientSearch = document.getElementById('client-search');
+        const transactionSearch = document.getElementById('transaction-search');
+        const exportClientsBtn = document.getElementById('export-clients');
+        const exportTransactionsBtn = document.getElementById('export-transactions');
+        const recentActivity = document.getElementById('recent-activity');
 
         let clients = [];
         let transactions = [];
+        let deferredPrompt; // Variable to store the install event
+
+        // Update dashboard date
+        function updateDashboardDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dashboardDate.textContent = `Today: ${now.toLocaleDateString('en-US', options)}`;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth tab management
+        window.showAuthTab = function(tabName) {
+            // Hide all forms and remove active class from tabs
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.add('hidden');
+                form.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected form and activate tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'login') {
+                loginForm.classList.remove('hidden');
+                loginForm.classList.add('active');
+            } else if (tabName === 'signup') {
+                signupForm.classList.remove('hidden');
+                signupForm.classList.add('active');
+            } else if (tabName === 'forgot-password') {
+                forgotPasswordForm.classList.remove('hidden');
+                forgotPasswordForm.classList.add('active');
+            }
+        };
+
+        // Check if we're in a password reset flow
+        function checkPasswordReset() {
+            const urlParams = new URLSearchParams(window.location.hash.substring(1));
+            const type = urlParams.get('type');
+            const accessToken = urlParams.get('access_token');
+            
+            if (type === 'recovery' && accessToken) {
+                // We're in a password reset flow
+                showAuthTab('forgot-password');
+                forgotPasswordForm.classList.add('hidden');
+                resetPasswordForm.classList.remove('hidden');
+                resetPasswordForm.classList.add('active');
+                
+                // Store the access token for the reset
+                resetPasswordForm.dataset.accessToken = accessToken;
+            }
+        }
+
+        // PWA Installation Logic
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                console.log('Service Worker registration skipped - not required for this app');
+            });
+        }
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.classList.remove('hidden');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installButton.classList.add('hidden');
+            }
+        });
 
         // Helper Functions
         function showMessage(title, message) {
@@ -277,6 +671,40 @@
             messageModal.style.display = 'none';
         };
 
+        // Safe number formatting to prevent toFixed errors
+        function safeToFixed(value, decimals = 2) {
+            if (value === null || value === undefined || isNaN(value)) {
+                return '0.00';
+            }
+            return parseFloat(value).toFixed(decimals);
+        }
+
+        // Interest calculation functions
+        function calculateInterestPreview() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
+            const previewDiv = document.getElementById('interest-preview');
+            
+            if (amount > 0 && interestRate > 0) {
+                const interestAmount = (amount * interestRate) / 100;
+                const totalAmount = amount + interestAmount;
+                
+                document.getElementById('preview-principal').textContent = `R${safeToFixed(amount)}`;
+                document.getElementById('preview-interest-rate').textContent = `${safeToFixed(interestRate)}%`;
+                document.getElementById('preview-interest-amount').textContent = `R${safeToFixed(interestAmount)}`;
+                document.getElementById('preview-total-amount').textContent = `R${safeToFixed(totalAmount)}`;
+                
+                previewDiv.classList.remove('hidden');
+            } else {
+                previewDiv.classList.add('hidden');
+            }
+        }
+
+        function toggleLoanDetails() {
+            // Always show interest fields for both receivable and payable
+            calculateInterestPreview();
+        }
+
         async function updateLateFees() {
             if (!userId) return;
             const now = new Date();
@@ -287,7 +715,7 @@
                         const monthsLate = Math.floor((now.getFullYear() - dueDate.getFullYear()) * 12 + (now.getMonth() - dueDate.getMonth()));
                         if (monthsLate > 0) {
                             const monthlyLateFee = t.amount * (t.interest_rate / 100);
-                            const totalLateFee = (monthlyLateFee * monthsLate).toFixed(2);
+                            const totalLateFee = safeToFixed(monthlyLateFee * monthsLate);
                             if (parseFloat(t.late_fees) !== parseFloat(totalLateFee)) {
                                 await supabase
                                     .from('transactions')
@@ -304,78 +732,220 @@
         function calculateMetrics() {
             let receivable = 0;
             let payable = 0;
-            let netInterest = 0;
+            let netBalance = 0;
+            let receivableCount = 0;
+            let payableCount = 0;
+            let overdueCount = 0;
 
             const clientBalances = {};
             clients.forEach(c => clientBalances[c.id] = 0);
 
             transactions.forEach(t => {
                 if (t.type === 'receivable') {
-                    const totalDue = t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
+                    // Money you will receive
+                    const totalDue = parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0);
                     receivable += totalDue;
-                    netInterest += (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
+                    receivableCount++;
+                    
                     if (clientBalances[t.client_id] !== undefined) {
                         clientBalances[t.client_id] += totalDue;
                     }
+                    
+                    // Check if receivable is overdue
+                    if (t.due_date && new Date(t.due_date) < new Date()) {
+                        overdueCount++;
+                    }
                 } else if (t.type === 'payable') {
-                    // UPDATED: Include interest and late fees in payable calculation
-                    const totalPayment = t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
-                    payable += totalPayment;
-                    netInterest += (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0);
+                    // Money you owe
+                    payable += parseFloat(t.amount || 0);
+                    payableCount++;
                     if (clientBalances[t.client_id] !== undefined) {
-                        clientBalances[t.client_id] -= totalPayment;
+                        clientBalances[t.client_id] -= parseFloat(t.amount || 0);
                     }
                 }
             });
 
-            dashboard.receivableTotal.textContent = `R${receivable.toFixed(2)}`;
-            dashboard.payableTotal.textContent = `R${payable.toFixed(2)}`;
-            dashboard.netInterestTotal.textContent = `R${netInterest.toFixed(2)}`;
+            // Net balance = Receivable - Payable
+            netBalance = receivable - payable;
+
+            dashboard.receivableTotal.textContent = `R${safeToFixed(receivable)}`;
+            dashboard.payableTotal.textContent = `R${safeToFixed(payable)}`;
+            dashboard.netInterestTotal.textContent = `R${safeToFixed(netBalance)}`;
+            dashboard.overdueCount.textContent = `${overdueCount} overdue receivables`;
 
             renderClientList(clientBalances);
+            updateRecentActivity();
         }
 
         function renderClientList(clientBalances) {
             clientListBody.innerHTML = '';
-            clients.forEach(client => {
+            
+            // Filter clients based on search
+            const searchTerm = clientSearch.value.toLowerCase();
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) ||
+                (client.email && client.email.toLowerCase().includes(searchTerm)) ||
+                (client.phone && client.phone.includes(searchTerm))
+            );
+            
+            if (filteredClients.length === 0) {
                 const row = document.createElement('tr');
-                const balance = (clientBalances[client.id] || 0).toFixed(2);
-                const balanceColor = balance > 0 ? 'text-rose-600' : 'text-green-600';
+                row.innerHTML = `
+                    <td colspan="5" class="px-3 py-2 text-center text-xs text-gray-500">
+                        No clients found matching your search.
+                    </td>
+                `;
+                clientListBody.appendChild(row);
+                return;
+            }
+            
+            filteredClients.forEach(client => {
+                const row = document.createElement('tr');
+                const balance = safeToFixed(clientBalances[client.id] || 0);
+                const balanceColor = balance > 0 ? 'text-emerald-600' : (balance < 0 ? 'text-rose-600' : 'text-gray-600');
 
-                const hasOverdueLoans = transactions.some(t => t.client_id === client.id && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
-                const overdueBadge = hasOverdueLoans ? '<span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Overdue</span>' : '';
+                const hasOverdueReceivables = transactions.some(t => 
+                    t.client_id === client.id && 
+                    t.type === 'receivable' && 
+                    t.due_date && 
+                    new Date(t.due_date) < new Date()
+                );
+                
+                const overdueBadge = hasOverdueReceivables ? 
+                    '<span class="ml-1 px-1 inline-flex text-xs leading-3 font-semibold rounded-full bg-red-100 text-red-800 overdue">Overdue</span>' : 
+                    '';
 
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name}${overdueBadge}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.email || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${balanceColor}">R${balance}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button onclick="downloadClientReport('${client.id}')" class="text-emerald-600 hover:text-emerald-900 font-bold">Download Report</button>
-                        <button onclick="remindClient('${client.id}')" class="text-orange-500 hover:text-orange-700 font-bold">Remind</button>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 flex-shrink-0 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <span class="text-emerald-800 font-bold text-xs">${client.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div class="ml-2">
+                                <div class="font-medium text-gray-900">${client.name}${overdueBadge}</div>
+                                <div class="text-gray-500 text-xs">${client.notes || 'No notes'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                        <div>${client.email || 'N/A'}</div>
+                        <div>${client.phone || 'N/A'}</div>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold ${balanceColor}">R${balance}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${balance > 0 ? 'bg-emerald-100 text-emerald-800' : (balance < 0 ? 'bg-rose-100 text-rose-800' : 'bg-gray-100 text-gray-800')}">
+                            ${balance > 0 ? 'You Owe' : (balance < 0 ? 'Owes You' : 'Settled')}
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-right text-xs font-medium space-x-1">
+                        <button onclick="downloadClientReport('${client.id}')" class="text-emerald-600 hover:text-emerald-900 font-bold" title="Download Report">
+                            <i class="fas fa-download text-xs"></i>
+                        </button>
+                        <button onclick="remindClient('${client.id}')" class="text-orange-500 hover:text-orange-700 font-bold" title="Send Reminder">
+                            <i class="fas fa-bell text-xs"></i>
+                        </button>
+                        <button onclick="deleteClient('${client.id}')" class="text-red-600 hover:text-red-900 font-bold" title="Delete Client">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
                     </td>
                 `;
                 clientListBody.appendChild(row);
             });
         }
 
+        function updateRecentActivity() {
+            recentActivity.innerHTML = '';
+            
+            // Get the 5 most recent transactions
+            const recentTransactions = [...transactions]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 5);
+            
+            if (recentTransactions.length === 0) {
+                recentActivity.innerHTML = `
+                    <div class="flex items-center justify-center py-4 text-gray-500 text-xs">
+                        <i class="fas fa-history text-lg mr-2"></i>
+                        <span>No recent activity</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            recentTransactions.forEach(transaction => {
+                const client = clients.find(c => c.id === transaction.client_id);
+                const clientName = client ? client.name : 'Unknown Client';
+                const isReceivable = transaction.type === 'receivable';
+                const amount = safeToFixed(transaction.amount);
+                
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start p-2 bg-gray-50 rounded text-xs';
+                activityItem.innerHTML = `
+                    <div class="flex-shrink-0 mt-0.5">
+                        <div class="h-6 w-6 rounded-full flex items-center justify-center ${isReceivable ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                            <i class="fas ${isReceivable ? 'fa-hand-holding-usd' : 'fa-money-check-alt'} text-xs"></i>
+                        </div>
+                    </div>
+                    <div class="ml-2">
+                        <p class="font-medium text-gray-900">
+                            ${isReceivable ? 'Money receivable from' : 'Money payable to'} ${clientName}
+                        </p>
+                        <p class="text-gray-500">
+                            R${amount} • ${transaction.date}
+                        </p>
+                    </div>
+                `;
+                
+                recentActivity.appendChild(activityItem);
+            });
+        }
+
+        // New function to delete a client
+        window.deleteClient = async function(clientId) {
+            if (confirm("Are you sure you want to delete this client? This will also delete all their transactions.")) {
+                try {
+                    // First, delete related transactions
+                    const { error: transactionError } = await supabase
+                        .from('transactions')
+                        .delete()
+                        .eq('client_id', clientId);
+
+                    if (transactionError) throw transactionError;
+
+                    // Then, delete the client
+                    const { error: clientError } = await supabase
+                        .from('clients')
+                        .delete()
+                        .eq('id', clientId);
+
+                    if (clientError) throw clientError;
+
+                    showNotification('Client and all related transactions deleted successfully.', 'success');
+                    fetchData();
+                } catch (error) {
+                    showNotification(`Failed to delete client: ${error.message}`, 'error');
+                    console.error('Error deleting client:', error);
+                }
+            }
+        };
+
         window.remindClient = function(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
-                showMessage('Error', 'Client not found.');
+                showNotification('Client not found.', 'error');
                 return;
             }
-            const overdueLoans = transactions.filter(t => t.client_id === clientId && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
+            const overdueReceivables = transactions.filter(t => t.client_id === clientId && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
 
             let message = `Hello ${client.name},<br><br>`;
-            if (overdueLoans.length > 0) {
-                message += "This is a friendly reminder that you have one or more overdue loan payments:<br><br>";
-                overdueLoans.forEach(loan => {
-                    message += `Loan of **R${loan.amount.toFixed(2)}** was due on **${loan.due_date}**.<br>The current outstanding amount is **R${(loan.amount + (loan.interest_earned || 0) + (parseFloat(loan.late_fees) || 0)).toFixed(2)}**.<br><br>`;
+            if (overdueReceivables.length > 0) {
+                message += "This is a friendly reminder that you have one or more overdue receivables:<br><br>";
+                overdueReceivables.forEach(receivable => {
+                    const totalDue = parseFloat(receivable.amount || 0) + parseFloat(receivable.interest_earned || 0) + parseFloat(receivable.late_fees || 0);
+                    message += `Amount of **R${safeToFixed(receivable.amount)}** was due on **${receivable.due_date}**.<br>The current outstanding amount is **R${safeToFixed(totalDue)}**.<br><br>`;
                 });
                 message += "Please settle the outstanding balance as soon as possible.<br><br>Thank you!";
             } else {
-                message += "This client has no overdue loans at this time. All payments are up to date.<br><br>Thank you!";
+                message += "This client has no overdue receivables at this time. All payments are up to date.<br><br>Thank you!";
             }
 
             showMessage('Reminder', message);
@@ -388,7 +958,7 @@
                 
                 const client = clients.find(c => c.id === clientId);
                 if (!client) {
-                    showMessage('Error', 'Client not found!');
+                    showNotification('Client not found!', 'error');
                     return;
                 }
 
@@ -412,6 +982,8 @@
                 doc.text(`Email: ${client.email || 'N/A'}`, margin, y);
                 y += lineHeight;
                 doc.text(`Phone: ${client.phone || 'N/A'}`, margin, y);
+                y += lineHeight;
+                doc.text(`Address: ${client.address || 'N/A'}`, margin, y);
                 y += lineHeight * 2;
 
                 doc.setFontSize(14);
@@ -419,8 +991,8 @@
                 doc.text("Transaction History:", margin, y);
                 y += lineHeight;
                 
-                const headers = ["Date", "Type", "Principal (R)", "Interest (R)", "Late Fees (R)", "Total Due (R)"];
-                const columnWidths = [25, 20, 25, 20, 25, 25];
+                const headers = ["Date", "Type", "Amount (R)", "Interest (R)", "Late Fees (R)", "Total (R)"];
+                const columnWidths = [25, 25, 20, 20, 20, 20];
                 let x = margin;
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "bold");
@@ -439,17 +1011,17 @@
                     y += lineHeight;
                 } else {
                     clientTransactions.forEach(t => {
-                        const type = t.type === 'receivable' ? 'Loan' : 'Payment';
-                        const interestEarned = t.interest_earned !== undefined ? t.interest_earned.toFixed(2) : 'N/A';
-                        const lateFees = t.late_fees !== undefined ? parseFloat(t.late_fees).toFixed(2) : '0.00';
-                        const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
+                        const type = t.type === 'receivable' ? 'Receivable' : 'Payable';
+                        const interestEarned = t.interest_earned !== undefined ? safeToFixed(t.interest_earned) : 'N/A';
+                        const lateFees = t.late_fees !== undefined ? safeToFixed(t.late_fees) : '0.00';
+                        const totalDue = safeToFixed(parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0));
                         
                         x = margin;
                         doc.text(t.date, x, y);
                         x += columnWidths[0];
                         doc.text(type, x, y);
                         x += columnWidths[1];
-                        doc.text(t.amount.toFixed(2), x, y);
+                        doc.text(safeToFixed(t.amount), x, y);
                         x += columnWidths[2];
                         doc.text(interestEarned, x, y);
                         x += columnWidths[3];
@@ -461,7 +1033,7 @@
                         if (t.type === 'receivable') {
                             balance += parseFloat(totalDue);
                         } else if (t.type === 'payable') {
-                            balance -= t.amount;
+                            balance -= parseFloat(t.amount || 0);
                         }
                     });
                 }
@@ -469,38 +1041,69 @@
                 y += lineHeight;
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "bold");
-                doc.text(`Final Balance: R${balance.toFixed(2)}`, margin, y);
+                doc.text(`Final Balance: R${safeToFixed(balance)}`, margin, y);
 
                 const filename = `${client.name.replace(/ /g, '_')}_report.pdf`;
                 doc.save(filename);
+                showNotification('Client report downloaded successfully.', 'success');
             } catch (error) {
-                showMessage('Error', 'Failed to generate PDF report. Please try again.');
+                showNotification('Failed to generate PDF report. Please try again.', 'error');
                 console.error('PDF generation error:', error);
             }
         };
 
         function renderTransactionList() {
             transactionListBody.innerHTML = '';
-            transactions.forEach(t => {
+            
+            // Filter transactions based on search
+            const searchTerm = transactionSearch.value.toLowerCase();
+            const filteredTransactions = transactions.filter(transaction => {
+                const client = clients.find(c => c.id === transaction.client_id);
+                const clientName = client ? client.name.toLowerCase() : '';
+                
+                return clientName.includes(searchTerm) ||
+                       transaction.date.includes(searchTerm) ||
+                       transaction.type.includes(searchTerm) ||
+                       (transaction.amount && transaction.amount.toString().includes(searchTerm));
+            });
+            
+            if (filteredTransactions.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="8" class="px-3 py-2 text-center text-xs text-gray-500">
+                        No transactions found matching your search.
+                    </td>
+                `;
+                transactionListBody.appendChild(row);
+                return;
+            }
+            
+            filteredTransactions.forEach(t => {
                 const clientName = clients.find(c => c.id === t.client_id)?.name || 'Unknown Client';
                 const row = document.createElement('tr');
-                const interestEarned = t.interest_earned !== undefined ? `R${t.interest_earned.toFixed(2)}` : 'N/A';
-                const lateFees = t.late_fees !== undefined ? `R${parseFloat(t.late_fees).toFixed(2)}` : 'R0.00';
-                const totalDue = (t.amount + (t.interest_earned || 0) + (parseFloat(t.late_fees) || 0)).toFixed(2);
+                const interestEarned = t.interest_earned !== undefined ? `R${safeToFixed(t.interest_earned)}` : 'N/A';
+                const lateFees = t.late_fees !== undefined ? `R${safeToFixed(t.late_fees)}` : 'R0.00';
+                const totalDue = safeToFixed(parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0));
                 const typeColor = t.type === 'receivable' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
+                
+                // Check if receivable is overdue
+                const isOverdue = t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date();
+                const rowClass = isOverdue ? 'bg-red-50' : '';
+                
+                row.className = rowClass;
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.date}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${clientName}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeColor}">
-                            ${t.type === 'receivable' ? 'Loan' : 'Payment'}
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${t.date}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-900">${clientName}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs">
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${typeColor}">
+                            ${t.type === 'receivable' ? 'Receivable' : 'Payable'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R${t.amount.toFixed(2)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.interest_rate ? t.interest_rate.toFixed(2) + '%' : 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${interestEarned}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${lateFees}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">R${totalDue}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">R${safeToFixed(t.amount)}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${t.interest_rate ? safeToFixed(t.interest_rate) + '%' : 'N/A'}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${interestEarned}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${lateFees}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold text-gray-900">R${totalDue}</td>
                 `;
                 transactionListBody.appendChild(row);
             });
@@ -515,15 +1118,6 @@
                 clientSelect.appendChild(option);
             });
         }
-
-        function toggleLoanDetails() {
-            // UPDATED: Show loan details for both receivable AND payable
-            if (transactionTypeSelect.value === 'receivable' || transactionTypeSelect.value === 'payable') {
-                loanDetailsDiv.classList.remove('hidden');
-            } else {
-                loanDetailsDiv.classList.add('hidden');
-            }
-        }
         
         async function fetchData() {
             if (!userId) {
@@ -536,38 +1130,120 @@
                     .select('*')
                     .eq('user_id', userId);
 
-                if (clientsError) throw clientsError;
-                clients = clientsData || [];
+                if (clientsError) {
+                    console.error('Error fetching clients:', clientsError);
+                    if (clientsError.code === 'PGRST301' || clientsError.message.includes('does not exist')) {
+                        showNotification('Database tables not set up. Please create the tables in Supabase.', 'error');
+                    }
+                    clients = [];
+                } else {
+                    clients = clientsData || [];
+                }
 
                 const { data: transactionsData, error: transactionsError } = await supabase
                     .from('transactions')
                     .select('*')
                     .eq('user_id', userId);
 
-                if (transactionsError) throw transactionsError;
-                transactions = transactionsData || [];
+                if (transactionsError) {
+                    console.error('Error fetching transactions:', transactionsError);
+                    transactions = [];
+                } else {
+                    transactions = transactionsData || [];
+                }
 
                 await updateLateFees();
                 calculateMetrics();
                 populateClientSelect();
                 renderTransactionList();
             } catch (error) {
-                showMessage('Error', `Failed to fetch data: ${error.message}`);
                 console.error('Error fetching data:', error);
+                if (clients.length === 0 && transactions.length === 0) {
+                    console.log('No data available yet - tables may need to be created');
+                } else {
+                    showNotification(`Failed to fetch data: ${error.message}`, 'error');
+                }
             }
         }
-        
+
+        // Tab navigation function - FIXED VERSION
+        window.showTab = function(tabName, type = null) {
+            console.log('Showing tab:', tabName, 'with type:', type);
+            
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+                console.log('Tab content activated:', tabName);
+            } else {
+                console.error('Tab not found:', tabName);
+            }
+            
+            // If it's the add-transaction tab and a type is specified, set the transaction type
+            if (tabName === 'add-transaction' && type) {
+                document.getElementById('transaction-type').value = type;
+                toggleLoanDetails();
+                console.log('Transaction type set to:', type);
+            }
+            
+            // Find and activate the corresponding tab button
+            let activeButton = null;
+            
+            // Special handling for add-transaction tabs
+            if (tabName === 'add-transaction') {
+                if (type === 'receivable') {
+                    activeButton = Array.from(tabButtons).find(button => 
+                        button.textContent.includes('Money Receivable')
+                    );
+                } else if (type === 'payable') {
+                    activeButton = Array.from(tabButtons).find(button => 
+                        button.textContent.includes('Money Payable')
+                    );
+                }
+            } else {
+                // For other tabs, match by tab name
+                activeButton = Array.from(tabButtons).find(button => {
+                    const buttonText = button.textContent.toLowerCase();
+                    const tabNameLower = tabName.toLowerCase().replace('-', ' ');
+                    return buttonText.includes(tabNameLower);
+                });
+            }
+            
+            if (activeButton) {
+                activeButton.classList.add('active');
+                console.log('Tab button activated:', activeButton.textContent);
+            } else {
+                console.warn('No matching tab button found for:', tabName);
+            }
+        };
+
+        // Enhanced auth state change handler
         supabase.auth.onAuthStateChange((event, session) => {
+            debugAuth('Auth state changed', { event, session: !!session, userId: session?.user?.id });
+            
             if (session) {
-                console.log("User is signed in:", session.user.id);
                 userId = session.user.id;
-                userIdDisplay.textContent = `User ID: ${userId}`;
+                userIdDisplay.textContent = `User ID: ${userId.substring(0, 8)}...`;
                 authContainer.style.display = 'none';
                 appContainer.style.display = 'block';
+                updateDashboardDate();
                 fetchData();
-                showTab('clients'); // Show clients tab by default
+                showTab('clients');
+                showNotification('Welcome back!', 'success');
             } else {
-                console.log("User is signed out.");
+                debugAuth('No session found, showing auth container');
                 userId = null;
                 authContainer.style.display = 'block';
                 appContainer.style.display = 'none';
@@ -575,26 +1251,158 @@
         });
 
         // Event Listeners
-        authForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-            const buttonId = e.submitter.id;
+
+            // Show loading state
+            const loginText = document.getElementById('login-text');
+            const loginLoading = document.getElementById('login-loading');
+            
+            loginText.textContent = 'Logging in...';
+            loginLoading.classList.remove('hidden');
 
             try {
-                if (buttonId === 'login-button') {
-                    console.log("Attempting to log in with email:", email);
-                    const { error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                } else if (buttonId === 'signup-button') {
-                    console.log("Attempting to sign up with email:", email);
-                    const { error } = await supabase.auth.signUp({ email, password });
-                    if (error) throw error;
-                    showMessage('Registration Successful', 'You have been signed up and logged in successfully.');
+                debugAuth("Attempting to log in with email:", email);
+                const { data, error } = await supabase.auth.signInWithPassword({ 
+                    email, 
+                    password 
+                });
+                
+                if (error) {
+                    debugAuth("Login error", error);
+                    throw error;
                 }
+                
+                debugAuth("Login successful", data);
+                showNotification('Login successful!', 'success');
+                
+                // The auth state change handler should handle the UI transition
             } catch (error) {
-                showMessage('Authentication Failed', `Error: ${error.message}`);
-                console.error("Authentication failed:", error);
+                console.error("Login failed:", error);
+                showNotification(`Login failed: ${error.message}`, 'error');
+                
+                // Reset button states
+                loginText.textContent = 'Login';
+                loginLoading.classList.add('hidden');
+            }
+        });
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match.', 'error');
+                return;
+            }
+
+            // Show loading state
+            const signupText = document.getElementById('signup-text');
+            const signupLoading = document.getElementById('signup-loading');
+            
+            signupText.textContent = 'Signing up...';
+            signupLoading.classList.remove('hidden');
+
+            try {
+                debugAuth("Attempting to sign up with email:", email);
+                const { data, error } = await supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) throw error;
+                
+                showNotification('Registration successful! Please check your email for verification.', 'success');
+                signupForm.reset();
+                showAuthTab('login');
+            } catch (error) {
+                showNotification(`Registration failed: ${error.message}`, 'error');
+                console.error("Registration failed:", error);
+            } finally {
+                // Reset button states
+                signupText.textContent = 'Sign Up';
+                signupLoading.classList.add('hidden');
+            }
+        });
+
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+
+            // Show loading state
+            const resetText = document.getElementById('reset-text');
+            const resetLoading = document.getElementById('reset-loading');
+            
+            resetText.textContent = 'Sending...';
+            resetLoading.classList.remove('hidden');
+
+            try {
+                debugAuth("Attempting to send password reset email to:", email);
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin,
+                });
+                if (error) throw error;
+                showNotification('Password reset link sent! Please check your email.', 'success');
+                forgotPasswordForm.reset();
+            } catch (error) {
+                showNotification(`Failed to send reset link: ${error.message}`, 'error');
+                console.error("Password reset request failed:", error);
+            } finally {
+                // Reset button states
+                resetText.textContent = 'Send Reset Link';
+                resetLoading.classList.add('hidden');
+            }
+        });
+
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+            const accessToken = resetPasswordForm.dataset.accessToken;
+
+            if (newPassword !== confirmNewPassword) {
+                showNotification('Passwords do not match.', 'error');
+                return;
+            }
+
+            // Show loading state
+            const updatePasswordText = document.getElementById('update-password-text');
+            const updatePasswordLoading = document.getElementById('update-password-loading');
+            
+            updatePasswordText.textContent = 'Updating...';
+            updatePasswordLoading.classList.remove('hidden');
+
+            try {
+                debugAuth("Attempting to update password");
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+                
+                if (error) throw error;
+                
+                showNotification('Password updated successfully! You can now log in with your new password.', 'success');
+                resetPasswordForm.reset();
+                
+                // Redirect to login after successful password reset
+                setTimeout(() => {
+                    showAuthTab('login');
+                    resetPasswordForm.classList.add('hidden');
+                    forgotPasswordForm.classList.remove('hidden');
+                }, 2000);
+            } catch (error) {
+                showNotification(`Failed to update password: ${error.message}`, 'error');
+                console.error("Password update failed:", error);
+            } finally {
+                // Reset button states
+                updatePasswordText.textContent = 'Update Password';
+                updatePasswordLoading.classList.add('hidden');
             }
         });
 
@@ -602,9 +1410,9 @@
             try {
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
-                showMessage('Logged Out', 'You have been logged out successfully.');
+                showNotification('You have been logged out successfully.', 'info');
             } catch (error) {
-                showMessage('Logout Failed', `Error: ${error.message}`);
+                showNotification(`Logout failed: ${error.message}`, 'error');
                 console.error("Logout failed:", error);
             }
         });
@@ -614,27 +1422,41 @@
             const name = document.getElementById('client-name').value;
             const email = document.getElementById('client-email').value;
             const phone = document.getElementById('client-phone').value;
+            const address = document.getElementById('client-address').value;
+            const notes = document.getElementById('client-notes').value;
 
             const newClient = {
                 name,
                 email,
                 phone,
+                address,
+                notes,
                 user_id: userId
             };
             
             try {
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('clients')
-                    .insert([newClient]);
+                    .insert([newClient])
+                    .select();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error details:', error);
+                    if (error.code === '42P01') { // Table doesn't exist
+                        showNotification('Database tables not set up. Please create the clients and transactions tables in Supabase SQL Editor.', 'error');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+                
                 addClientForm.reset();
-                showMessage('Success', 'Client added successfully!');
+                showNotification('Client added successfully!', 'success');
                 showTab('clients');
                 fetchData();
             } catch (error) {
-                showMessage('Error', 'Failed to add client. Please try again.');
-                console.error("Error adding client:", error);
+                console.error('Full error adding client:', error);
+                showNotification(`Failed to add client: ${error.message}`, 'error');
             }
         });
 
@@ -643,9 +1465,12 @@
             const clientId = document.getElementById('client-select').value;
             const type = transactionTypeSelect.value;
             const amount = parseFloat(document.getElementById('amount').value);
+            const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
+            const dueDate = document.getElementById('due-date').value;
+            const notes = document.getElementById('transaction-notes').value;
 
             if (!clientId) {
-                showMessage('Validation Error', 'Please select a client.');
+                showNotification('Please select a client.', 'error');
                 return;
             }
 
@@ -654,87 +1479,252 @@
                 client_id: clientId,
                 user_id: userId,
                 type,
-                amount
+                amount,
+                interest_rate: interestRate,
+                due_date: dueDate,
+                notes: notes
             };
 
-            // UPDATED: Handle interest for both receivable AND payable transactions
-            if (type === 'receivable' || type === 'payable') {
-                const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
-                const interestEarned = amount * (interestRate / 100);
+            // Calculate interest for both receivable and payable
+            if (interestRate > 0) {
+                const interestAmount = (amount * interestRate) / 100;
+                newTransaction.interest_earned = interestAmount;
                 
-                newTransaction.interest_rate = interestRate;
-                newTransaction.interest_earned = interestEarned;
-                
-                // Only add due date and late fees for receivable (loans given)
+                // Only add late fees for receivables
                 if (type === 'receivable') {
-                    const dueDate = document.getElementById('due-date').value;
-                    newTransaction.due_date = dueDate;
+                    newTransaction.late_fees = 0;
+                }
+            } else {
+                newTransaction.interest_earned = 0;
+                if (type === 'receivable') {
                     newTransaction.late_fees = 0;
                 }
             }
 
             try {
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('transactions')
-                    .insert([newTransaction]);
+                    .insert([newTransaction])
+                    .select();
+
+                if (error) {
+                    console.error('Supabase error details:', error);
+                    if (error.code === '42P01') { // Table doesn't exist
+                        showNotification('Database tables not set up. Please create the clients and transactions tables in Supabase SQL Editor.', 'error');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
                     
-                if (error) throw error;
                 addTransactionForm.reset();
-                showMessage('Success', 'Transaction added successfully!');
+                document.getElementById('interest-preview').classList.add('hidden');
+                showNotification('Transaction added successfully!', 'success');
                 showTab('transactions');
                 fetchData();
             } catch (error) {
-                showMessage('Error', 'Failed to add transaction. Please try again.');
-                console.error("Error adding transaction:", error);
+                console.error('Full error adding transaction:', error);
+                showNotification(`Failed to add transaction: ${error.message}`, 'error');
             }
         });
 
         transactionTypeSelect.addEventListener('change', toggleLoanDetails);
-
-        window.showTab = function(tabId, transactionType = null) {
-            tabContents.forEach(tab => tab.classList.remove('active'));
-            tabButtons.forEach(button => {
-                button.classList.remove('active', 'bg-emerald-600', 'text-white');
-                button.classList.add('text-white', 'hover:bg-white', 'hover:bg-opacity-20');
-            });
-
-            document.getElementById(tabId).classList.add('active');
-            const activeButton = Array.from(tabButtons).find(button => 
-                button.getAttribute('onclick')?.includes(`showTab('${tabId}'`)
-            );
-            if (activeButton) {
-                activeButton.classList.add('active', 'bg-emerald-600', 'text-white');
-                activeButton.classList.remove('hover:bg-white', 'hover:bg-opacity-20');
-            }
+        
+        // Add event listeners for real-time interest calculation
+        document.getElementById('amount').addEventListener('input', calculateInterestPreview);
+        document.getElementById('interest-rate').addEventListener('input', calculateInterestPreview);
+        
+        // Search functionality
+        clientSearch.addEventListener('input', () => {
+            calculateMetrics();
+        });
+        
+        transactionSearch.addEventListener('input', () => {
+            renderTransactionList();
+        });
+        
+        // Export functionality
+        exportClientsBtn.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            if (tabId === 'add-transaction') {
-                if (transactionType) {
-                    transactionTypeSelect.value = transactionType;
+            let y = 20;
+            const margin = 15;
+            const lineHeight = 7;
+            
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Client List Export`, margin, y);
+            doc.setDrawColor(200);
+            doc.line(margin, y + 2, 200, y + 2);
+            y += lineHeight * 2;
+            
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
+            y += lineHeight * 2;
+            
+            const headers = ["Name", "Email", "Phone", "Balance (R)"];
+            const columnWidths = [50, 60, 40, 30];
+            let x = margin;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            headers.forEach((header, index) => {
+                doc.text(header, x, y);
+                x += columnWidths[index];
+            });
+            y += 2;
+            doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
+            y += lineHeight;
+            
+            doc.setFont("helvetica", "normal");
+            clients.forEach(client => {
+                const clientTransactions = transactions.filter(t => t.client_id === client.id);
+                let balance = 0;
+                clientTransactions.forEach(t => {
+                    if (t.type === 'receivable') {
+                        balance += parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0);
+                    } else if (t.type === 'payable') {
+                        balance -= parseFloat(t.amount || 0);
+                    }
+                });
+                
+                x = margin;
+                doc.text(client.name, x, y);
+                x += columnWidths[0];
+                doc.text(client.email || 'N/A', x, y);
+                x += columnWidths[1];
+                doc.text(client.phone || 'N/A', x, y);
+                x += columnWidths[2];
+                doc.text(safeToFixed(balance), x, y);
+                y += lineHeight;
+                
+                // Add new page if needed
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
                 }
-                toggleLoanDetails();
-            }
-        };
-
-        // PWA Installation
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-button').classList.remove('hidden');
+            });
+            
+            doc.save('clients_export.pdf');
+            showNotification('Client list exported successfully.', 'success');
+        });
+        
+        exportTransactionsBtn.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            let y = 20;
+            const margin = 15;
+            const lineHeight = 7;
+            
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Transaction History Export`, margin, y);
+            doc.setDrawColor(200);
+            doc.line(margin, y + 2, 200, y + 2);
+            y += lineHeight * 2;
+            
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
+            y += lineHeight * 2;
+            
+            const headers = ["Date", "Client", "Type", "Amount (R)", "Interest (R)", "Late Fees (R)", "Total (R)"];
+            const columnWidths = [25, 40, 25, 20, 20, 20, 20];
+            let x = margin;
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            headers.forEach((header, index) => {
+                doc.text(header, x, y);
+                x += columnWidths[index];
+            });
+            y += 2;
+            doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
+            y += lineHeight;
+            
+            doc.setFont("helvetica", "normal");
+            transactions.forEach(transaction => {
+                const client = clients.find(c => c.id === transaction.client_id);
+                const clientName = client ? client.name : 'Unknown Client';
+                const interestEarned = transaction.interest_earned !== undefined ? safeToFixed(transaction.interest_earned) : 'N/A';
+                const lateFees = transaction.late_fees !== undefined ? safeToFixed(transaction.late_fees) : '0.00';
+                const totalDue = safeToFixed(parseFloat(transaction.amount || 0) + parseFloat(transaction.interest_earned || 0) + parseFloat(transaction.late_fees || 0));
+                
+                x = margin;
+                doc.text(transaction.date, x, y);
+                x += columnWidths[0];
+                doc.text(clientName, x, y);
+                x += columnWidths[1];
+                doc.text(transaction.type === 'receivable' ? 'Receivable' : 'Payable', x, y);
+                x += columnWidths[2];
+                doc.text(safeToFixed(transaction.amount), x, y);
+                x += columnWidths[3];
+                doc.text(interestEarned, x, y);
+                x += columnWidths[4];
+                doc.text(lateFees, x, y);
+                x += columnWidths[5];
+                doc.text(totalDue, x, y);
+                y += lineHeight;
+                
+                // Add new page if needed
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            
+            doc.save('transactions_export.pdf');
+            showNotification('Transaction history exported successfully.', 'success');
         });
 
-        document.getElementById('install-button').addEventListener('click', async () => {
-            document.getElementById('install-button').classList.add('hidden');
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
-            }
+        // Debug session button
+        document.getElementById('debug-session').addEventListener('click', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            debugAuth('Manual session check', session);
+            alert(`Session exists: ${!!session}\nUser ID: ${session?.user?.id || 'None'}`);
         });
 
         // Initialize the app
-        console.log("App initialized. Please log in or sign up.");
+        async function initApp() {
+            updateDashboardDate();
+            checkPasswordReset();
+            
+            // Check if user is already logged in
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                debugAuth('Initial session check', { session: !!session, error });
+                
+                if (session) {
+                    userId = session.user.id;
+                    userIdDisplay.textContent = `User ID: ${userId.substring(0, 8)}...`;
+                    authContainer.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    updateDashboardDate();
+                    fetchData();
+                    showTab('clients');
+                    showNotification('Welcome back!', 'success');
+                } else {
+                    debugAuth('No existing session found');
+                    authContainer.style.display = 'block';
+                    appContainer.style.display = 'none';
+                }
+            } catch (error) {
+                debugAuth('Error checking session', error);
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
+            }
+            
+            // Set up periodic data refresh (every 30 seconds)
+            setInterval(() => {
+                if (userId) {
+                    fetchData();
+                }
+            }, 30000);
+        }
+
+        // Start the application
+        initApp();
     </script>
 </body>
 </html>
