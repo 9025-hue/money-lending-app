@@ -8,37 +8,22 @@
     
     <!-- Inline Tailwind CSS to avoid CDN warning -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        emerald: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
+        /* Custom styles to reduce Tailwind dependency */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 1rem;
+        }
+        @media (min-width: 640px) {
+            body {
+                padding: 1.5rem;
+            }
         }
         .tab-content {
             display: none;
@@ -79,13 +64,6 @@
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        input, select, textarea {
-            border: 1px solid #d1d5db;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #10b981;
-            ring-color: #10b981;
         }
         .notification {
             position: fixed;
@@ -158,9 +136,28 @@
         .compact-section {
             margin-bottom: 1rem;
         }
+        
+        /* Custom grid and spacing */
+        .custom-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        .custom-grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 768px) {
+            .custom-grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 1024px) {
+            .custom-grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
-<body class="p-4 sm:p-6">
+<body>
 
     <div id="auth-container" class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-2xl">
         <div class="text-center mb-4">
@@ -186,11 +183,11 @@
         <form id="login-form" class="auth-form space-y-3 active">
             <div>
                 <label for="auth-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="email" id="auth-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="auth-password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="auth-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="login-text">Login</span>
@@ -202,15 +199,15 @@
         <form id="signup-form" class="auth-form space-y-3 hidden">
             <div>
                 <label for="signup-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="signup-email" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="email" id="signup-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="signup-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="signup-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input type="password" id="confirm-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="confirm-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="signup-text">Sign Up</span>
@@ -225,7 +222,7 @@
             </div>
             <div>
                 <label for="reset-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="reset-email" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="email" id="reset-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="reset-text">Send Reset Link</span>
@@ -240,11 +237,11 @@
             </div>
             <div>
                 <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
-                <input type="password" id="new-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="new-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <div>
                 <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
-                <input type="password" id="confirm-new-password" class="mt-1 block w-full rounded-md shadow-sm text-sm p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                <input type="password" id="confirm-new-password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
             </div>
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
                 <span id="update-password-text">Update Password</span>
@@ -274,7 +271,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 compact-section">
+        <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-3 gap-4 mb-4 compact-section">
             <div class="bg-emerald-50 rounded-lg p-4 shadow-md border border-emerald-200 card-hover">
                 <div class="flex justify-between items-start">
                     <div>
@@ -401,29 +398,29 @@
         <div id="add-client" class="tab-content">
             <h2 class="text-xl font-semibold text-white mb-2">Add New Client</h2>
             <form id="add-client-form" class="bg-white p-4 rounded-lg shadow-md space-y-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
                     <div>
                         <label for="client-name" class="block text-xs font-medium text-gray-700">Client Name *</label>
-                        <input type="text" id="client-name" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Client Name" required>
+                        <input type="text" id="client-name" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Client Name" required>
                     </div>
                     <div>
                         <label for="client-email" class="block text-xs font-medium text-gray-700">Email Address</label>
-                        <input type="email" id="client-email" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Email Address">
+                        <input type="email" id="client-email" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Email Address">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
                     <div>
                         <label for="client-phone" class="block text-xs font-medium text-gray-700">Phone Number</label>
-                        <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Phone Number">
+                        <input type="tel" id="client-phone" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Phone Number">
                     </div>
                     <div>
                         <label for="client-address" class="block text-xs font-medium text-gray-700">Address</label>
-                        <input type="text" id="client-address" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Address">
+                        <input type="text" id="client-address" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Address">
                     </div>
                 </div>
                 <div>
                     <label for="client-notes" class="block text-xs font-medium text-gray-700">Notes</label>
-                    <textarea id="client-notes" rows="2" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Additional notes about the client"></textarea>
+                    <textarea id="client-notes" rows="2" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Additional notes about the client"></textarea>
                 </div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
                     <i class="fas fa-user-plus mr-1"></i>Add Client
@@ -434,39 +431,39 @@
         <div id="add-transaction" class="tab-content">
             <h2 class="text-xl font-semibold text-white mb-2">Add New Transaction</h2>
             <form id="add-transaction-form" class="bg-white p-4 rounded-lg shadow-md space-y-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
                     <div>
                         <label for="client-select" class="block text-xs font-medium text-gray-700">Select Client *</label>
-                        <select id="client-select" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                        <select id="client-select" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
                             <option value="">-- Select a Client --</option>
                         </select>
                     </div>
                     <div>
                         <label for="transaction-type" class="block text-xs font-medium text-gray-700">Transaction Type *</label>
-                        <select id="transaction-type" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
+                        <select id="transaction-type" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" required>
                             <option value="receivable">Money Receivable (You will receive)</option>
                             <option value="payable">Money Payable (You owe)</option>
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
                     <div>
                         <label for="amount" class="block text-xs font-medium text-gray-700">Amount (R) *</label>
-                        <input type="number" id="amount" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Amount" step="0.01" required>
+                        <input type="number" id="amount" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Amount" step="0.01" required>
                     </div>
                     <div id="loan-details" class="hidden">
                         <label for="interest-rate" class="block text-xs font-medium text-gray-700">Interest Rate (%)</label>
-                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1">
+                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1">
                     </div>
                 </div>
-                <div id="loan-details-2" class="grid grid-cols-1 md:grid-cols-2 gap-3 hidden">
+                <div id="loan-details-2" class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3 hidden">
                     <div>
                         <label for="due-date" class="block text-xs font-medium text-gray-700">Due Date</label>
-                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        <input type="date" id="due-date" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                     </div>
                     <div>
                         <label for="transaction-notes" class="block text-xs font-medium text-gray-700">Notes</label>
-                        <input type="text" id="transaction-notes" class="mt-1 block w-full rounded-md shadow-sm text-xs p-2 border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Transaction notes">
+                        <input type="text" id="transaction-notes" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Transaction notes">
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
@@ -608,14 +605,8 @@
         // PWA Installation Logic - Fixed Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Only register service worker if it exists - don't throw errors if it doesn't
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered with scope:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker not found or registration failed:', error);
-                    });
+                // Skip service worker registration to avoid errors
+                console.log('Service Worker registration skipped - not required for this app');
             });
         }
         
@@ -1091,9 +1082,10 @@
 
                 if (clientsError) {
                     console.error('Error fetching clients:', clientsError);
-                    // If table doesn't exist, create empty array
+                    if (clientsError.code === 'PGRST301' || clientsError.message.includes('does not exist')) {
+                        showNotification('Database tables not set up. Please create the tables in Supabase.', 'error');
+                    }
                     clients = [];
-                    showNotification('Database tables not set up. Please create clients and transactions tables in Supabase.', 'error');
                 } else {
                     clients = clientsData || [];
                 }
@@ -1105,7 +1097,6 @@
 
                 if (transactionsError) {
                     console.error('Error fetching transactions:', transactionsError);
-                    // If table doesn't exist, create empty array
                     transactions = [];
                 } else {
                     transactions = transactionsData || [];
@@ -1117,7 +1108,6 @@
                 renderTransactionList();
             } catch (error) {
                 console.error('Error fetching data:', error);
-                // Don't show notification for initial data fetch errors
                 if (clients.length === 0 && transactions.length === 0) {
                     console.log('No data available yet - tables may need to be created');
                 } else {
@@ -1315,8 +1305,8 @@
 
                 if (error) {
                     console.error('Supabase error details:', error);
-                    if (error.message.includes('relation "clients" does not exist')) {
-                        showNotification('Database tables not set up. Please create clients table in Supabase SQL Editor.', 'error');
+                    if (error.code === '42P01') { // Table doesn't exist
+                        showNotification('Database tables not set up. Please create the clients and transactions tables in Supabase SQL Editor.', 'error');
                     } else {
                         throw error;
                     }
@@ -1373,8 +1363,8 @@
 
                 if (error) {
                     console.error('Supabase error details:', error);
-                    if (error.message.includes('relation "transactions" does not exist')) {
-                        showNotification('Database tables not set up. Please create transactions table in Supabase SQL Editor.', 'error');
+                    if (error.code === '42P01') { // Table doesn't exist
+                        showNotification('Database tables not set up. Please create the clients and transactions tables in Supabase SQL Editor.', 'error');
                     } else {
                         throw error;
                     }
@@ -1479,4 +1469,12 @@
             
             doc.setFontSize(22);
             doc.setFont("helvetica", "bold");
-           
+            doc.text(`Transaction History Export`, margin, y);
+            doc.setDrawColor(200);
+            doc.line(margin, y + 2, 200, y + 2);
+            y += lineHeight * 2;
+            
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
+            y += lineHeight * 
