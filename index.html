@@ -458,12 +458,12 @@
                         <label for="amount" class="block text-xs font-medium text-gray-700">Amount (R) *</label>
                         <input type="number" id="amount" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Amount" step="0.01" required>
                     </div>
-                    <div id="loan-details" class="hidden">
+                    <div>
                         <label for="interest-rate" class="block text-xs font-medium text-gray-700">Interest Rate (%)</label>
-                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1">
+                        <input type="number" id="interest-rate" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g., 40" step="0.1" value="0">
                     </div>
                 </div>
-                <div id="loan-details-2" class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3 hidden">
+                <div class="custom-grid custom-grid-cols-1 md:custom-grid-cols-2 gap-3">
                     <div>
                         <label for="due-date" class="block text-xs font-medium text-gray-700">Due Date</label>
                         <input type="date" id="due-date" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
@@ -473,6 +473,25 @@
                         <input type="text" id="transaction-notes" class="mt-1 block w-full rounded-md border border-gray-300 p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Transaction notes">
                     </div>
                 </div>
+                
+                <!-- Interest Calculation Preview -->
+                <div id="interest-preview" class="bg-gray-50 p-3 rounded-md border border-gray-200 hidden">
+                    <h4 class="text-xs font-medium text-gray-700 mb-2">Interest Calculation Preview</h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="text-gray-600">Principal Amount:</div>
+                        <div class="text-gray-800 font-medium" id="preview-principal">R0.00</div>
+                        
+                        <div class="text-gray-600">Interest Rate:</div>
+                        <div class="text-gray-800 font-medium" id="preview-interest-rate">0%</div>
+                        
+                        <div class="text-gray-600">Interest Amount:</div>
+                        <div class="text-gray-800 font-medium" id="preview-interest-amount">R0.00</div>
+                        
+                        <div class="text-gray-600">Total Amount:</div>
+                        <div class="text-gray-800 font-bold" id="preview-total-amount">R0.00</div>
+                    </div>
+                </div>
+                
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
                     <i class="fas fa-plus-circle mr-1"></i>Add Transaction
                 </button>
@@ -540,10 +559,6 @@
         const addClientForm = document.getElementById('add-client-form');
         const addTransactionForm = document.getElementById('add-transaction-form');
         const transactionTypeSelect = document.getElementById('transaction-type');
-        const loanDetailsDiv = document.getElementById('loan-details');
-        const loanDetailsDiv2 = document.getElementById('loan-details-2');
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
         const messageModal = document.getElementById('message-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
@@ -661,6 +676,32 @@
                 return '0.00';
             }
             return parseFloat(value).toFixed(decimals);
+        }
+
+        // Interest calculation functions
+        function calculateInterestPreview() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
+            const previewDiv = document.getElementById('interest-preview');
+            
+            if (amount > 0 && interestRate > 0) {
+                const interestAmount = (amount * interestRate) / 100;
+                const totalAmount = amount + interestAmount;
+                
+                document.getElementById('preview-principal').textContent = `R${safeToFixed(amount)}`;
+                document.getElementById('preview-interest-rate').textContent = `${safeToFixed(interestRate)}%`;
+                document.getElementById('preview-interest-amount').textContent = `R${safeToFixed(interestAmount)}`;
+                document.getElementById('preview-total-amount').textContent = `R${safeToFixed(totalAmount)}`;
+                
+                previewDiv.classList.remove('hidden');
+            } else {
+                previewDiv.classList.add('hidden');
+            }
+        }
+
+        function toggleLoanDetails() {
+            // Always show interest fields for both receivable and payable
+            calculateInterestPreview();
         }
 
         async function updateLateFees() {
@@ -1076,16 +1117,6 @@
                 clientSelect.appendChild(option);
             });
         }
-
-        function toggleLoanDetails() {
-            if (transactionTypeSelect.value === 'receivable') {
-                loanDetailsDiv.classList.remove('hidden');
-                loanDetailsDiv2.classList.remove('hidden');
-            } else {
-                loanDetailsDiv.classList.add('hidden');
-                loanDetailsDiv2.classList.add('hidden');
-            }
-        }
         
         async function fetchData() {
             if (!userId) {
@@ -1370,6 +1401,9 @@
             const clientId = document.getElementById('client-select').value;
             const type = transactionTypeSelect.value;
             const amount = parseFloat(document.getElementById('amount').value);
+            const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
+            const dueDate = document.getElementById('due-date').value;
+            const notes = document.getElementById('transaction-notes').value;
 
             if (!clientId) {
                 showNotification('Please select a client.', 'error');
@@ -1381,20 +1415,26 @@
                 client_id: clientId,
                 user_id: userId,
                 type,
-                amount
+                amount,
+                interest_rate: interestRate,
+                due_date: dueDate,
+                notes: notes
             };
 
-            if (type === 'receivable') {
-                const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
-                const dueDate = document.getElementById('due-date').value;
-                const notes = document.getElementById('transaction-notes').value;
-                const interestEarned = amount * (interestRate / 100);
+            // Calculate interest for both receivable and payable
+            if (interestRate > 0) {
+                const interestAmount = (amount * interestRate) / 100;
+                newTransaction.interest_earned = interestAmount;
                 
-                newTransaction.interest_rate = interestRate;
-                newTransaction.interest_earned = interestEarned;
-                newTransaction.due_date = dueDate;
-                newTransaction.late_fees = 0;
-                newTransaction.notes = notes;
+                // Only add late fees for receivables
+                if (type === 'receivable') {
+                    newTransaction.late_fees = 0;
+                }
+            } else {
+                newTransaction.interest_earned = 0;
+                if (type === 'receivable') {
+                    newTransaction.late_fees = 0;
+                }
             }
 
             try {
@@ -1414,6 +1454,7 @@
                 }
                     
                 addTransactionForm.reset();
+                document.getElementById('interest-preview').classList.add('hidden');
                 showNotification('Transaction added successfully!', 'success');
                 showTab('transactions');
                 fetchData();
@@ -1424,6 +1465,10 @@
         });
 
         transactionTypeSelect.addEventListener('change', toggleLoanDetails);
+        
+        // Add event listeners for real-time interest calculation
+        document.getElementById('amount').addEventListener('input', calculateInterestPreview);
+        document.getElementById('interest-rate').addEventListener('input', calculateInterestPreview);
         
         // Search functionality
         clientSearch.addEventListener('input', () => {
