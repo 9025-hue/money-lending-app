@@ -742,7 +742,7 @@
 
             transactions.forEach(t => {
                 if (t.type === 'receivable') {
-                    // Money you will receive
+                    // Money you will receive - include principal + interest + late fees
                     const totalDue = parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0);
                     receivable += totalDue;
                     receivableCount++;
@@ -756,11 +756,12 @@
                         overdueCount++;
                     }
                 } else if (t.type === 'payable') {
-                    // Money you owe
-                    payable += parseFloat(t.amount || 0);
+                    // Money you owe - include principal + interest (no late fees for payables)
+                    const totalOwed = parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0);
+                    payable += totalOwed;
                     payableCount++;
                     if (clientBalances[t.client_id] !== undefined) {
-                        clientBalances[t.client_id] -= parseFloat(t.amount || 0);
+                        clientBalances[t.client_id] -= totalOwed;
                     }
                 }
             });
@@ -771,8 +772,10 @@
             dashboard.receivableTotal.textContent = `R${safeToFixed(receivable)}`;
             dashboard.payableTotal.textContent = `R${safeToFixed(payable)}`;
             dashboard.netInterestTotal.textContent = `R${safeToFixed(netBalance)}`;
+            dashboard.receivableCount.textContent = `${receivableCount} receivables (incl. interest)`;
+            dashboard.payableCount.textContent = `${payableCount} payables (incl. interest)`;
             dashboard.overdueCount.textContent = `${overdueCount} overdue receivables`;
-
+            
             renderClientList(clientBalances);
             updateRecentActivity();
         }
@@ -876,6 +879,8 @@
                 const clientName = client ? client.name : 'Unknown Client';
                 const isReceivable = transaction.type === 'receivable';
                 const amount = safeToFixed(transaction.amount);
+                const interest = safeToFixed(transaction.interest_earned || 0);
+                const totalAmount = safeToFixed(parseFloat(transaction.amount || 0) + parseFloat(transaction.interest_earned || 0));
                 
                 const activityItem = document.createElement('div');
                 activityItem.className = 'flex items-start p-2 bg-gray-50 rounded text-xs';
@@ -890,7 +895,7 @@
                             ${isReceivable ? 'Money receivable from' : 'Money payable to'} ${clientName}
                         </p>
                         <p class="text-gray-500">
-                            R${amount} • ${transaction.date}
+                            R${totalAmount} (R${amount} + R${interest} interest) • ${transaction.date}
                         </p>
                     </div>
                 `;
@@ -1033,7 +1038,7 @@
                         if (t.type === 'receivable') {
                             balance += parseFloat(totalDue);
                         } else if (t.type === 'payable') {
-                            balance -= parseFloat(t.amount || 0);
+                            balance -= parseFloat(totalDue);
                         }
                     });
                 }
@@ -1585,7 +1590,7 @@
                     if (t.type === 'receivable') {
                         balance += parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0);
                     } else if (t.type === 'payable') {
-                        balance -= parseFloat(t.amount || 0);
+                        balance -= parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0);
                     }
                 });
                 
