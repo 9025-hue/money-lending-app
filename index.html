@@ -4,9 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Lending App</title>
-    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#10b981"/>
+    
+    <!-- Inline Tailwind CSS to avoid CDN warning -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -145,6 +169,7 @@
             <p class="text-gray-600 mt-1 text-sm">Manage your lending business efficiently</p>
         </div>
         
+        <!-- Auth Tabs -->
         <div class="flex mb-4 bg-gray-100 rounded-lg p-1">
             <div id="login-tab" class="auth-tab flex-1 text-center active" onclick="showAuthTab('login')">
                 Login
@@ -157,6 +182,7 @@
             </div>
         </div>
         
+        <!-- Login Form -->
         <form id="login-form" class="auth-form space-y-3 active">
             <div>
                 <label for="auth-email" class="block text-sm font-medium text-gray-700">Email Address</label>
@@ -172,6 +198,7 @@
             </button>
         </form>
         
+        <!-- Sign Up Form -->
         <form id="signup-form" class="auth-form space-y-3 hidden">
             <div>
                 <label for="signup-email" class="block text-sm font-medium text-gray-700">Email Address</label>
@@ -191,6 +218,7 @@
             </button>
         </form>
         
+        <!-- Forgot Password Form -->
         <form id="forgot-password-form" class="auth-form space-y-3 hidden">
             <div class="mb-2 text-sm text-gray-600">
                 Enter your email address and we'll send you a link to reset your password.
@@ -205,6 +233,7 @@
             </button>
         </form>
         
+        <!-- Reset Password Form (shown after clicking reset link) -->
         <form id="reset-password-form" class="auth-form space-y-3 hidden">
             <div class="mb-2 text-sm text-gray-600">
                 Enter your new password below.
@@ -462,9 +491,8 @@
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         
         // --- Supabase Configuration ---
-        // 🔑 The keys provided by the user have been inserted below:
-        const SUPABASE_URL = 'https://aitfzvzkwuevvjrafphs.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdGZ6dnprd3VldnZqcmFmcGhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODM5ODMsImV4cCI6MjA3NTA1OTk4M30.ozABWP0Lc4JY-2vFA5u9evf-xUp1O-FCODFYEJUvdJw';
+        const SUPABASE_URL = 'https://azncsbqyjzqhxecagevm.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bmNzYnF5anpxaHhlY2FnZXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzUxODcsImV4cCI6MjA3MDY1MTE4N30.fGe2JVhV2JPHnWg8xabO4wZVoflqhroen0SqTS2FO6c'
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let userId = null;
@@ -514,67 +542,941 @@
         let transactions = [];
         let deferredPrompt; // Variable to store the install event
 
-        // --- Utility Functions ---
-
-        // Currency formatter for South African Rand (R)
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-ZA', {
-                style: 'currency',
-                currency: 'ZAR',
-                minimumFractionDigits: 2,
-            }).format(amount).replace('ZAR', 'R'); // Replace 'ZAR' with 'R' for cleaner display
+        // Update dashboard date
+        function updateDashboardDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dashboardDate.textContent = `Today: ${now.toLocaleDateString('en-US', options)}`;
         }
 
-        /**
-         * Calculates loan metrics (interest, late fees, and total) for a receivable transaction.
-         * ASSUMPTIONS:
-         * 1. Interest rate is a simple one-time percentage applied to the principal amount.
-         * 2. Late fee is a flat R10 per day overdue.
-         */
-        function calculateLoanMetrics(transaction) {
-            if (transaction.type !== 'receivable' || transaction.status === 'repaid' || !transaction.due_date || !transaction.interest_rate) {
-                // Return initial amount and zero interest/fees for non-receivables or repaid/missing data
-                return { interest: 0, late_fees: 0, total: transaction.amount };
+        // Show notification
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth tab management
+        window.showAuthTab = function(tabName) {
+            // Hide all forms and remove active class from tabs
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.add('hidden');
+                form.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected form and activate tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'login') {
+                loginForm.classList.remove('hidden');
+                loginForm.classList.add('active');
+            } else if (tabName === 'signup') {
+                signupForm.classList.remove('hidden');
+                signupForm.classList.add('active');
+            } else if (tabName === 'forgot-password') {
+                forgotPasswordForm.classList.remove('hidden');
+                forgotPasswordForm.classList.add('active');
             }
+        };
 
-            const today = new Date();
-            const dueDate = new Date(transaction.due_date);
-            const amount = transaction.amount;
-            const interestRate = transaction.interest_rate / 100;
-
-            // 1. Calculate Initial Interest (One-time, based on the entered rate)
-            let interest = amount * interestRate;
-            let late_fees = 0;
-
-            // 2. Calculate Late Fees (If the due date has passed)
-            if (today > dueDate) {
-                const msInDay = 1000 * 60 * 60 * 24;
-                // Calculate days overdue. Math.floor is safer to avoid charging on the exact due date.
-                const daysOverdue = Math.floor((today - dueDate) / msInDay);
-
-                // ASSUMPTION: Late fee is R10 per day overdue (you can change this constant)
-                const DAILY_LATE_FEE = 10;
+        // Check if we're in a password reset flow
+        function checkPasswordReset() {
+            const urlParams = new URLSearchParams(window.location.hash.substring(1));
+            const type = urlParams.get('type');
+            const accessToken = urlParams.get('access_token');
+            
+            if (type === 'recovery' && accessToken) {
+                // We're in a password reset flow
+                showAuthTab('forgot-password');
+                forgotPasswordForm.classList.add('hidden');
+                resetPasswordForm.classList.remove('hidden');
+                resetPasswordForm.classList.add('active');
                 
-                if (daysOverdue > 0) {
-                    late_fees = daysOverdue * DAILY_LATE_FEE;
+                // Store the access token for the reset
+                resetPasswordForm.dataset.accessToken = accessToken;
+            }
+        }
+
+        // PWA Installation Logic - Fixed Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Only register service worker if it exists - don't throw errors if it doesn't
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker not found or registration failed:', error);
+                    });
+            });
+        }
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.classList.remove('hidden');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installButton.classList.add('hidden');
+            }
+        });
+
+        // Helper Functions
+        function showMessage(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            messageModal.style.display = 'flex';
+        }
+
+        window.closeModal = function() {
+            messageModal.style.display = 'none';
+        };
+
+        // Safe number formatting to prevent toFixed errors
+        function safeToFixed(value, decimals = 2) {
+            if (value === null || value === undefined || isNaN(value)) {
+                return '0.00';
+            }
+            return parseFloat(value).toFixed(decimals);
+        }
+
+        async function updateLateFees() {
+            if (!userId) return;
+            const now = new Date();
+            for (const t of transactions) {
+                if (t.type === 'receivable' && t.due_date) {
+                    const dueDate = new Date(t.due_date);
+                    if (now > dueDate) {
+                        const monthsLate = Math.floor((now.getFullYear() - dueDate.getFullYear()) * 12 + (now.getMonth() - dueDate.getMonth()));
+                        if (monthsLate > 0) {
+                            const monthlyLateFee = t.amount * (t.interest_rate / 100);
+                            const totalLateFee = safeToFixed(monthlyLateFee * monthsLate);
+                            if (parseFloat(t.late_fees) !== parseFloat(totalLateFee)) {
+                                await supabase
+                                    .from('transactions')
+                                    .update({ late_fees: totalLateFee })
+                                    .eq('id', t.id);
+                                t.late_fees = totalLateFee;
+                            }
+                        }
+                    }
                 }
             }
-            
-            // 3. Calculate Total Outstanding
-            const total = amount + interest + late_fees;
-
-            return {
-                interest: parseFloat(interest.toFixed(2)),
-                late_fees: parseFloat(late_fees.toFixed(2)),
-                total: parseFloat(total.toFixed(2))
-            };
         }
 
-        // --- The rest of the script functions (showAuthTab, showTab, notifications, data fetching, etc.) should follow here ---
+        function calculateMetrics() {
+            let receivable = 0;
+            let payable = 0;
+            let netBalance = 0;
+            let receivableCount = 0;
+            let payableCount = 0;
+            let overdueCount = 0;
 
-        // NOTE: The rest of the application logic is missing from the provided snippet 
-        // (e.g., auth handlers, event listeners, fetch functions, PWA logic, etc.) 
-        // and would need to be re-added below to make the app fully functional.
-    </script>
-</body>
-</html>
+            const clientBalances = {};
+            clients.forEach(c => clientBalances[c.id] = 0);
+
+            transactions.forEach(t => {
+                if (t.type === 'receivable') {
+                    // Money you will receive
+                    const totalDue = parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0);
+                    receivable += totalDue;
+                    receivableCount++;
+                    
+                    if (clientBalances[t.client_id] !== undefined) {
+                        clientBalances[t.client_id] += totalDue;
+                    }
+                    
+                    // Check if receivable is overdue
+                    if (t.due_date && new Date(t.due_date) < new Date()) {
+                        overdueCount++;
+                    }
+                } else if (t.type === 'payable') {
+                    // Money you owe
+                    payable += parseFloat(t.amount || 0);
+                    payableCount++;
+                    if (clientBalances[t.client_id] !== undefined) {
+                        clientBalances[t.client_id] -= parseFloat(t.amount || 0);
+                    }
+                }
+            });
+
+            // Net balance = Receivable - Payable
+            netBalance = receivable - payable;
+
+            dashboard.receivableTotal.textContent = `R${safeToFixed(receivable)}`;
+            dashboard.payableTotal.textContent = `R${safeToFixed(payable)}`;
+            dashboard.netInterestTotal.textContent = `R${safeToFixed(netBalance)}`;
+            dashboard.overdueCount.textContent = `${overdueCount} overdue receivables`;
+
+            renderClientList(clientBalances);
+            updateRecentActivity();
+        }
+
+        function renderClientList(clientBalances) {
+            clientListBody.innerHTML = '';
+            
+            // Filter clients based on search
+            const searchTerm = clientSearch.value.toLowerCase();
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) ||
+                (client.email && client.email.toLowerCase().includes(searchTerm)) ||
+                (client.phone && client.phone.includes(searchTerm))
+            );
+            
+            if (filteredClients.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="5" class="px-3 py-2 text-center text-xs text-gray-500">
+                        No clients found matching your search.
+                    </td>
+                `;
+                clientListBody.appendChild(row);
+                return;
+            }
+            
+            filteredClients.forEach(client => {
+                const row = document.createElement('tr');
+                const balance = safeToFixed(clientBalances[client.id] || 0);
+                const balanceColor = balance > 0 ? 'text-emerald-600' : (balance < 0 ? 'text-rose-600' : 'text-gray-600');
+
+                const hasOverdueReceivables = transactions.some(t => 
+                    t.client_id === client.id && 
+                    t.type === 'receivable' && 
+                    t.due_date && 
+                    new Date(t.due_date) < new Date()
+                );
+                
+                const overdueBadge = hasOverdueReceivables ? 
+                    '<span class="ml-1 px-1 inline-flex text-xs leading-3 font-semibold rounded-full bg-red-100 text-red-800 overdue">Overdue</span>' : 
+                    '';
+
+                row.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 flex-shrink-0 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <span class="text-emerald-800 font-bold text-xs">${client.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div class="ml-2">
+                                <div class="font-medium text-gray-900">${client.name}${overdueBadge}</div>
+                                <div class="text-gray-500 text-xs">${client.notes || 'No notes'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                        <div>${client.email || 'N/A'}</div>
+                        <div>${client.phone || 'N/A'}</div>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold ${balanceColor}">R${balance}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${balance > 0 ? 'bg-emerald-100 text-emerald-800' : (balance < 0 ? 'bg-rose-100 text-rose-800' : 'bg-gray-100 text-gray-800')}">
+                            ${balance > 0 ? 'You Owe' : (balance < 0 ? 'Owes You' : 'Settled')}
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-right text-xs font-medium space-x-1">
+                        <button onclick="downloadClientReport('${client.id}')" class="text-emerald-600 hover:text-emerald-900 font-bold" title="Download Report">
+                            <i class="fas fa-download text-xs"></i>
+                        </button>
+                        <button onclick="remindClient('${client.id}')" class="text-orange-500 hover:text-orange-700 font-bold" title="Send Reminder">
+                            <i class="fas fa-bell text-xs"></i>
+                        </button>
+                        <button onclick="deleteClient('${client.id}')" class="text-red-600 hover:text-red-900 font-bold" title="Delete Client">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                clientListBody.appendChild(row);
+            });
+        }
+
+        function updateRecentActivity() {
+            recentActivity.innerHTML = '';
+            
+            // Get the 5 most recent transactions
+            const recentTransactions = [...transactions]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 5);
+            
+            if (recentTransactions.length === 0) {
+                recentActivity.innerHTML = `
+                    <div class="flex items-center justify-center py-4 text-gray-500 text-xs">
+                        <i class="fas fa-history text-lg mr-2"></i>
+                        <span>No recent activity</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            recentTransactions.forEach(transaction => {
+                const client = clients.find(c => c.id === transaction.client_id);
+                const clientName = client ? client.name : 'Unknown Client';
+                const isReceivable = transaction.type === 'receivable';
+                const amount = safeToFixed(transaction.amount);
+                
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start p-2 bg-gray-50 rounded text-xs';
+                activityItem.innerHTML = `
+                    <div class="flex-shrink-0 mt-0.5">
+                        <div class="h-6 w-6 rounded-full flex items-center justify-center ${isReceivable ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                            <i class="fas ${isReceivable ? 'fa-hand-holding-usd' : 'fa-money-check-alt'} text-xs"></i>
+                        </div>
+                    </div>
+                    <div class="ml-2">
+                        <p class="font-medium text-gray-900">
+                            ${isReceivable ? 'Money receivable from' : 'Money payable to'} ${clientName}
+                        </p>
+                        <p class="text-gray-500">
+                            R${amount} • ${transaction.date}
+                        </p>
+                    </div>
+                `;
+                
+                recentActivity.appendChild(activityItem);
+            });
+        }
+
+        // New function to delete a client
+        window.deleteClient = async function(clientId) {
+            if (confirm("Are you sure you want to delete this client? This will also delete all their transactions.")) {
+                try {
+                    // First, delete related transactions
+                    const { error: transactionError } = await supabase
+                        .from('transactions')
+                        .delete()
+                        .eq('client_id', clientId);
+
+                    if (transactionError) throw transactionError;
+
+                    // Then, delete the client
+                    const { error: clientError } = await supabase
+                        .from('clients')
+                        .delete()
+                        .eq('id', clientId);
+
+                    if (clientError) throw clientError;
+
+                    showNotification('Client and all related transactions deleted successfully.', 'success');
+                    fetchData();
+                } catch (error) {
+                    showNotification(`Failed to delete client: ${error.message}`, 'error');
+                    console.error('Error deleting client:', error);
+                }
+            }
+        };
+
+        window.remindClient = function(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showNotification('Client not found.', 'error');
+                return;
+            }
+            const overdueReceivables = transactions.filter(t => t.client_id === clientId && t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date());
+
+            let message = `Hello ${client.name},<br><br>`;
+            if (overdueReceivables.length > 0) {
+                message += "This is a friendly reminder that you have one or more overdue receivables:<br><br>";
+                overdueReceivables.forEach(receivable => {
+                    const totalDue = parseFloat(receivable.amount || 0) + parseFloat(receivable.interest_earned || 0) + parseFloat(receivable.late_fees || 0);
+                    message += `Amount of **R${safeToFixed(receivable.amount)}** was due on **${receivable.due_date}**.<br>The current outstanding amount is **R${safeToFixed(totalDue)}**.<br><br>`;
+                });
+                message += "Please settle the outstanding balance as soon as possible.<br><br>Thank you!";
+            } else {
+                message += "This client has no overdue receivables at this time. All payments are up to date.<br><br>Thank you!";
+            }
+
+            showMessage('Reminder', message);
+        };
+
+        window.downloadClientReport = function(clientId) {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const client = clients.find(c => c.id === clientId);
+                if (!client) {
+                    showNotification('Client not found!', 'error');
+                    return;
+                }
+
+                const clientTransactions = transactions.filter(t => t.client_id === clientId);
+                
+                let y = 20;
+                const margin = 15;
+                const lineHeight = 7;
+                
+                doc.setFontSize(22);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Client Report`, margin, y);
+                doc.setFontSize(16);
+                doc.text(client.name, margin, y + lineHeight);
+                doc.setDrawColor(200);
+                doc.line(margin, y + lineHeight + 2, 200, y + lineHeight + 2);
+                y += lineHeight * 3;
+
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Email: ${client.email || 'N/A'}`, margin, y);
+                y += lineHeight;
+                doc.text(`Phone: ${client.phone || 'N/A'}`, margin, y);
+                y += lineHeight;
+                doc.text(`Address: ${client.address || 'N/A'}`, margin, y);
+                y += lineHeight * 2;
+
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("Transaction History:", margin, y);
+                y += lineHeight;
+                
+                const headers = ["Date", "Type", "Amount (R)", "Interest (R)", "Late Fees (R)", "Total (R)"];
+                const columnWidths = [25, 25, 20, 20, 20, 20];
+                let x = margin;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                headers.forEach((header, index) => {
+                    doc.text(header, x, y);
+                    x += columnWidths[index];
+                });
+                y += 2;
+                doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
+                y += lineHeight;
+
+                doc.setFont("helvetica", "normal");
+                let balance = 0;
+                if (clientTransactions.length === 0) {
+                    doc.text("No transactions found.", margin, y);
+                    y += lineHeight;
+                } else {
+                    clientTransactions.forEach(t => {
+                        const type = t.type === 'receivable' ? 'Receivable' : 'Payable';
+                        const interestEarned = t.interest_earned !== undefined ? safeToFixed(t.interest_earned) : 'N/A';
+                        const lateFees = t.late_fees !== undefined ? safeToFixed(t.late_fees) : '0.00';
+                        const totalDue = safeToFixed(parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0));
+                        
+                        x = margin;
+                        doc.text(t.date, x, y);
+                        x += columnWidths[0];
+                        doc.text(type, x, y);
+                        x += columnWidths[1];
+                        doc.text(safeToFixed(t.amount), x, y);
+                        x += columnWidths[2];
+                        doc.text(interestEarned, x, y);
+                        x += columnWidths[3];
+                        doc.text(lateFees, x, y);
+                        x += columnWidths[4];
+                        doc.text(totalDue, x, y);
+                        y += lineHeight;
+
+                        if (t.type === 'receivable') {
+                            balance += parseFloat(totalDue);
+                        } else if (t.type === 'payable') {
+                            balance -= parseFloat(t.amount || 0);
+                        }
+                    });
+                }
+                
+                y += lineHeight;
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Final Balance: R${safeToFixed(balance)}`, margin, y);
+
+                const filename = `${client.name.replace(/ /g, '_')}_report.pdf`;
+                doc.save(filename);
+                showNotification('Client report downloaded successfully.', 'success');
+            } catch (error) {
+                showNotification('Failed to generate PDF report. Please try again.', 'error');
+                console.error('PDF generation error:', error);
+            }
+        };
+
+        function renderTransactionList() {
+            transactionListBody.innerHTML = '';
+            
+            // Filter transactions based on search
+            const searchTerm = transactionSearch.value.toLowerCase();
+            const filteredTransactions = transactions.filter(transaction => {
+                const client = clients.find(c => c.id === transaction.client_id);
+                const clientName = client ? client.name.toLowerCase() : '';
+                
+                return clientName.includes(searchTerm) ||
+                       transaction.date.includes(searchTerm) ||
+                       transaction.type.includes(searchTerm) ||
+                       (transaction.amount && transaction.amount.toString().includes(searchTerm));
+            });
+            
+            if (filteredTransactions.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="8" class="px-3 py-2 text-center text-xs text-gray-500">
+                        No transactions found matching your search.
+                    </td>
+                `;
+                transactionListBody.appendChild(row);
+                return;
+            }
+            
+            filteredTransactions.forEach(t => {
+                const clientName = clients.find(c => c.id === t.client_id)?.name || 'Unknown Client';
+                const row = document.createElement('tr');
+                const interestEarned = t.interest_earned !== undefined ? `R${safeToFixed(t.interest_earned)}` : 'N/A';
+                const lateFees = t.late_fees !== undefined ? `R${safeToFixed(t.late_fees)}` : 'R0.00';
+                const totalDue = safeToFixed(parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0));
+                const typeColor = t.type === 'receivable' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
+                
+                // Check if receivable is overdue
+                const isOverdue = t.type === 'receivable' && t.due_date && new Date(t.due_date) < new Date();
+                const rowClass = isOverdue ? 'bg-red-50' : '';
+                
+                row.className = rowClass;
+                row.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${t.date}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-900">${clientName}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs">
+                        <span class="px-1 inline-flex text-xs leading-3 font-semibold rounded-full ${typeColor}">
+                            ${t.type === 'receivable' ? 'Receivable' : 'Payable'}
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">R${safeToFixed(t.amount)}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${t.interest_rate ? safeToFixed(t.interest_rate) + '%' : 'N/A'}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${interestEarned}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${lateFees}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-xs font-bold text-gray-900">R${totalDue}</td>
+                `;
+                transactionListBody.appendChild(row);
+            });
+        }
+
+        function populateClientSelect() {
+            clientSelect.innerHTML = '<option value="">-- Select a Client --</option>';
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.name;
+                clientSelect.appendChild(option);
+            });
+        }
+
+        function toggleLoanDetails() {
+            if (transactionTypeSelect.value === 'receivable') {
+                loanDetailsDiv.classList.remove('hidden');
+                loanDetailsDiv2.classList.remove('hidden');
+            } else {
+                loanDetailsDiv.classList.add('hidden');
+                loanDetailsDiv2.classList.add('hidden');
+            }
+        }
+        
+        async function fetchData() {
+            if (!userId) {
+                console.log("UserID not available, skipping data fetch.");
+                return;
+            }
+            try {
+                const { data: clientsData, error: clientsError } = await supabase
+                    .from('clients')
+                    .select('*')
+                    .eq('user_id', userId);
+
+                if (clientsError) {
+                    console.error('Error fetching clients:', clientsError);
+                    // If table doesn't exist, create empty array
+                    clients = [];
+                    showNotification('Database tables not set up. Please create clients and transactions tables in Supabase.', 'error');
+                } else {
+                    clients = clientsData || [];
+                }
+
+                const { data: transactionsData, error: transactionsError } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('user_id', userId);
+
+                if (transactionsError) {
+                    console.error('Error fetching transactions:', transactionsError);
+                    // If table doesn't exist, create empty array
+                    transactions = [];
+                } else {
+                    transactions = transactionsData || [];
+                }
+
+                await updateLateFees();
+                calculateMetrics();
+                populateClientSelect();
+                renderTransactionList();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                // Don't show notification for initial data fetch errors
+                if (clients.length === 0 && transactions.length === 0) {
+                    console.log('No data available yet - tables may need to be created');
+                } else {
+                    showNotification(`Failed to fetch data: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                console.log("User is signed in:", session.user.id);
+                userId = session.user.id;
+                userIdDisplay.textContent = `User ID: ${userId.substring(0, 8)}...`;
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                updateDashboardDate();
+                fetchData();
+                showTab('clients'); // Show clients tab by default
+            } else {
+                console.log("User is signed out.");
+                userId = null;
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
+            }
+        });
+
+        // Event Listeners
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            // Show loading state
+            const loginText = document.getElementById('login-text');
+            const loginLoading = document.getElementById('login-loading');
+            
+            loginText.textContent = 'Logging in...';
+            loginLoading.classList.remove('hidden');
+
+            try {
+                console.log("Attempting to log in with email:", email);
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                showNotification('Login successful!', 'success');
+            } catch (error) {
+                showNotification(`Login failed: ${error.message}`, 'error');
+                console.error("Login failed:", error);
+            } finally {
+                // Reset button states
+                loginText.textContent = 'Login';
+                loginLoading.classList.add('hidden');
+            }
+        });
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match.', 'error');
+                return;
+            }
+
+            // Show loading state
+            const signupText = document.getElementById('signup-text');
+            const signupLoading = document.getElementById('signup-loading');
+            
+            signupText.textContent = 'Signing up...';
+            signupLoading.classList.remove('hidden');
+
+            try {
+                console.log("Attempting to sign up with email:", email);
+                const { error } = await supabase.auth.signUp({ email, password });
+                if (error) throw error;
+                showNotification('Registration successful! Please check your email for verification.', 'success');
+            } catch (error) {
+                showNotification(`Registration failed: ${error.message}`, 'error');
+                console.error("Registration failed:", error);
+            } finally {
+                // Reset button states
+                signupText.textContent = 'Sign Up';
+                signupLoading.classList.add('hidden');
+            }
+        });
+
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+
+            // Show loading state
+            const resetText = document.getElementById('reset-text');
+            const resetLoading = document.getElementById('reset-loading');
+            
+            resetText.textContent = 'Sending...';
+            resetLoading.classList.remove('hidden');
+
+            try {
+                console.log("Attempting to send password reset email to:", email);
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + window.location.pathname,
+                });
+                if (error) throw error;
+                showNotification('Password reset link sent! Please check your email.', 'success');
+                forgotPasswordForm.reset();
+            } catch (error) {
+                showNotification(`Failed to send reset link: ${error.message}`, 'error');
+                console.error("Password reset request failed:", error);
+            } finally {
+                // Reset button states
+                resetText.textContent = 'Send Reset Link';
+                resetLoading.classList.add('hidden');
+            }
+        });
+
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+            const accessToken = resetPasswordForm.dataset.accessToken;
+
+            if (newPassword !== confirmNewPassword) {
+                showNotification('Passwords do not match.', 'error');
+                return;
+            }
+
+            // Show loading state
+            const updatePasswordText = document.getElementById('update-password-text');
+            const updatePasswordLoading = document.getElementById('update-password-loading');
+            
+            updatePasswordText.textContent = 'Updating...';
+            updatePasswordLoading.classList.remove('hidden');
+
+            try {
+                console.log("Attempting to update password");
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+                
+                if (error) throw error;
+                
+                showNotification('Password updated successfully! You can now log in with your new password.', 'success');
+                resetPasswordForm.reset();
+                
+                // Redirect to login after successful password reset
+                setTimeout(() => {
+                    showAuthTab('login');
+                    resetPasswordForm.classList.add('hidden');
+                    forgotPasswordForm.classList.remove('hidden');
+                }, 2000);
+            } catch (error) {
+                showNotification(`Failed to update password: ${error.message}`, 'error');
+                console.error("Password update failed:", error);
+            } finally {
+                // Reset button states
+                updatePasswordText.textContent = 'Update Password';
+                updatePasswordLoading.classList.add('hidden');
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                showNotification('You have been logged out successfully.', 'info');
+            } catch (error) {
+                showNotification(`Logout failed: ${error.message}`, 'error');
+                console.error("Logout failed:", error);
+            }
+        });
+
+        addClientForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('client-name').value;
+            const email = document.getElementById('client-email').value;
+            const phone = document.getElementById('client-phone').value;
+            const address = document.getElementById('client-address').value;
+            const notes = document.getElementById('client-notes').value;
+
+            const newClient = {
+                name,
+                email,
+                phone,
+                address,
+                notes,
+                user_id: userId
+            };
+            
+            try {
+                const { data, error } = await supabase
+                    .from('clients')
+                    .insert([newClient])
+                    .select();
+
+                if (error) {
+                    console.error('Supabase error details:', error);
+                    if (error.message.includes('relation "clients" does not exist')) {
+                        showNotification('Database tables not set up. Please create clients table in Supabase SQL Editor.', 'error');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+                
+                addClientForm.reset();
+                showNotification('Client added successfully!', 'success');
+                showTab('clients');
+                fetchData();
+            } catch (error) {
+                console.error('Full error adding client:', error);
+                showNotification(`Failed to add client: ${error.message}`, 'error');
+            }
+        });
+
+        addTransactionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const clientId = document.getElementById('client-select').value;
+            const type = transactionTypeSelect.value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!clientId) {
+                showNotification('Please select a client.', 'error');
+                return;
+            }
+
+            const newTransaction = {
+                date: new Date().toISOString().split('T')[0],
+                client_id: clientId,
+                user_id: userId,
+                type,
+                amount
+            };
+
+            if (type === 'receivable') {
+                const interestRate = parseFloat(document.getElementById('interest-rate').value) || 0;
+                const dueDate = document.getElementById('due-date').value;
+                const notes = document.getElementById('transaction-notes').value;
+                const interestEarned = amount * (interestRate / 100);
+                
+                newTransaction.interest_rate = interestRate;
+                newTransaction.interest_earned = interestEarned;
+                newTransaction.due_date = dueDate;
+                newTransaction.late_fees = 0;
+                newTransaction.notes = notes;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('transactions')
+                    .insert([newTransaction])
+                    .select();
+
+                if (error) {
+                    console.error('Supabase error details:', error);
+                    if (error.message.includes('relation "transactions" does not exist')) {
+                        showNotification('Database tables not set up. Please create transactions table in Supabase SQL Editor.', 'error');
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+                    
+                addTransactionForm.reset();
+                showNotification('Transaction added successfully!', 'success');
+                showTab('transactions');
+                fetchData();
+            } catch (error) {
+                console.error('Full error adding transaction:', error);
+                showNotification(`Failed to add transaction: ${error.message}`, 'error');
+            }
+        });
+
+        transactionTypeSelect.addEventListener('change', toggleLoanDetails);
+        
+        // Search functionality
+        clientSearch.addEventListener('input', () => {
+            calculateMetrics();
+        });
+        
+        transactionSearch.addEventListener('input', () => {
+            renderTransactionList();
+        });
+        
+        // Export functionality
+        exportClientsBtn.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            let y = 20;
+            const margin = 15;
+            const lineHeight = 7;
+            
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Client List Export`, margin, y);
+            doc.setDrawColor(200);
+            doc.line(margin, y + 2, 200, y + 2);
+            y += lineHeight * 2;
+            
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
+            y += lineHeight * 2;
+            
+            const headers = ["Name", "Email", "Phone", "Balance (R)"];
+            const columnWidths = [50, 60, 40, 30];
+            let x = margin;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            headers.forEach((header, index) => {
+                doc.text(header, x, y);
+                x += columnWidths[index];
+            });
+            y += 2;
+            doc.line(margin, y, margin + columnWidths.reduce((a, b) => a + b), y);
+            y += lineHeight;
+            
+            doc.setFont("helvetica", "normal");
+            clients.forEach(client => {
+                const clientTransactions = transactions.filter(t => t.client_id === client.id);
+                let balance = 0;
+                clientTransactions.forEach(t => {
+                    if (t.type === 'receivable') {
+                        balance += parseFloat(t.amount || 0) + parseFloat(t.interest_earned || 0) + parseFloat(t.late_fees || 0);
+                    } else if (t.type === 'payable') {
+                        balance -= parseFloat(t.amount || 0);
+                    }
+                });
+                
+                x = margin;
+                doc.text(client.name, x, y);
+                x += columnWidths[0];
+                doc.text(client.email || 'N/A', x, y);
+                x += columnWidths[1];
+                doc.text(client.phone || 'N/A', x, y);
+                x += columnWidths[2];
+                doc.text(safeToFixed(balance), x, y);
+                y += lineHeight;
+                
+                // Add new page if needed
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            
+            doc.save('clients_export.pdf');
+            showNotification('Client list exported successfully.', 'success');
+        });
+        
+        exportTransactionsBtn.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            let y = 20;
+            const margin = 15;
+            const lineHeight = 7;
+            
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+           
