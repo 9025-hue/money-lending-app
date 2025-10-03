@@ -252,6 +252,13 @@
         <button id="install-button" class="hidden w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out text-sm">
             <i class="fas fa-download mr-2"></i>Download App
         </button>
+
+        <!-- Debug button -->
+        <div class="mt-4 text-center">
+            <button id="debug-session" class="text-xs text-gray-500 underline">
+                Check Session Status
+            </button>
+        </div>
     </div>
 
     <div id="app-container" class="max-w-7xl mx-auto glass-effect rounded-xl shadow-2xl p-4 sm:p-6">
@@ -488,11 +495,23 @@
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         
         // --- Supabase Configuration ---
-        const SUPABASE_URL = 'https://azncsbqyjzqhxecagevm.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bmNzYnF5anpxaHhlY2FnZXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzUxODcsImV4cCI6MjA3MDY1MTE4N30.fGe2JVhV2JPHnWg8xabO4wZVoflqhroen0SqTS2FO6c'
+        const SUPABASE_URL = 'https://aitfzvzkwuevvjrafphs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdGZ6dnprd3VldnZqcmFmcGhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODM5ODMsImV4cCI6MjA3NTA1OTk4M30.ozABWP0Lc4JY-2vFA5u9evf-xUp1O-FCODFYEJUvdJw';
         
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true
+            }
+        });
+        
         let userId = null;
+
+        // Debug function
+        function debugAuth(message, data = null) {
+            console.log(`🔐 AUTH DEBUG: ${message}`, data);
+        }
 
         // DOM elements
         const authContainer = document.getElementById('auth-container');
@@ -602,10 +621,9 @@
             }
         }
 
-        // PWA Installation Logic - Fixed Service Worker
+        // PWA Installation Logic
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Skip service worker registration to avoid errors
                 console.log('Service Worker registration skipped - not required for this app');
             });
         }
@@ -1115,19 +1133,22 @@
                 }
             }
         }
-        
+
+        // Enhanced auth state change handler
         supabase.auth.onAuthStateChange((event, session) => {
+            debugAuth('Auth state changed', { event, session: !!session, userId: session?.user?.id });
+            
             if (session) {
-                console.log("User is signed in:", session.user.id);
                 userId = session.user.id;
                 userIdDisplay.textContent = `User ID: ${userId.substring(0, 8)}...`;
                 authContainer.style.display = 'none';
                 appContainer.style.display = 'block';
                 updateDashboardDate();
                 fetchData();
-                showTab('clients'); // Show clients tab by default
+                showTab('clients');
+                showNotification('Welcome back!', 'success');
             } else {
-                console.log("User is signed out.");
+                debugAuth('No session found, showing auth container');
                 userId = null;
                 authContainer.style.display = 'block';
                 appContainer.style.display = 'none';
@@ -1148,14 +1169,25 @@
             loginLoading.classList.remove('hidden');
 
             try {
-                console.log("Attempting to log in with email:", email);
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
+                debugAuth("Attempting to log in with email:", email);
+                const { data, error } = await supabase.auth.signInWithPassword({ 
+                    email, 
+                    password 
+                });
+                
+                if (error) {
+                    debugAuth("Login error", error);
+                    throw error;
+                }
+                
+                debugAuth("Login successful", data);
                 showNotification('Login successful!', 'success');
+                
+                // The auth state change handler should handle the UI transition
             } catch (error) {
-                showNotification(`Login failed: ${error.message}`, 'error');
                 console.error("Login failed:", error);
-            } finally {
+                showNotification(`Login failed: ${error.message}`, 'error');
+                
                 // Reset button states
                 loginText.textContent = 'Login';
                 loginLoading.classList.add('hidden');
@@ -1181,10 +1213,20 @@
             signupLoading.classList.remove('hidden');
 
             try {
-                console.log("Attempting to sign up with email:", email);
-                const { error } = await supabase.auth.signUp({ email, password });
+                debugAuth("Attempting to sign up with email:", email);
+                const { data, error } = await supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+                
                 if (error) throw error;
+                
                 showNotification('Registration successful! Please check your email for verification.', 'success');
+                signupForm.reset();
+                showAuthTab('login');
             } catch (error) {
                 showNotification(`Registration failed: ${error.message}`, 'error');
                 console.error("Registration failed:", error);
@@ -1207,9 +1249,9 @@
             resetLoading.classList.remove('hidden');
 
             try {
-                console.log("Attempting to send password reset email to:", email);
+                debugAuth("Attempting to send password reset email to:", email);
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + window.location.pathname,
+                    redirectTo: window.location.origin,
                 });
                 if (error) throw error;
                 showNotification('Password reset link sent! Please check your email.', 'success');
@@ -1243,7 +1285,7 @@
             updatePasswordLoading.classList.remove('hidden');
 
             try {
-                console.log("Attempting to update password");
+                debugAuth("Attempting to update password");
                 const { error } = await supabase.auth.updateUser({
                     password: newPassword
                 });
@@ -1477,24 +1519,6 @@
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
-            y += lineHeight *         exportTransactionsBtn.addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            let y = 20;
-            const margin = 15;
-            const lineHeight = 7;
-            
-            doc.setFontSize(22);
-            doc.setFont("helvetica", "bold");
-            doc.text(`Transaction History Export`, margin, y);
-            doc.setDrawColor(200);
-            doc.line(margin, y + 2, 200, y + 2);
-            y += lineHeight * 2;
-            
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
             y += lineHeight * 2;
             
             const headers = ["Date", "Client", "Type", "Amount (R)", "Interest (R)", "Late Fees (R)", "Total (R)"];
@@ -1583,22 +1607,42 @@
             }
         };
 
+        // Debug session button
+        document.getElementById('debug-session').addEventListener('click', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            debugAuth('Manual session check', session);
+            alert(`Session exists: ${!!session}\nUser ID: ${session?.user?.id || 'None'}`);
+        });
+
         // Initialize the app
-        function initApp() {
+        async function initApp() {
             updateDashboardDate();
             checkPasswordReset();
             
             // Check if user is already logged in
-            supabase.auth.getSession().then(({ data: { session } }) => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                debugAuth('Initial session check', { session: !!session, error });
+                
                 if (session) {
                     userId = session.user.id;
                     userIdDisplay.textContent = `User ID: ${userId.substring(0, 8)}...`;
                     authContainer.style.display = 'none';
                     appContainer.style.display = 'block';
+                    updateDashboardDate();
                     fetchData();
                     showTab('clients');
+                    showNotification('Welcome back!', 'success');
+                } else {
+                    debugAuth('No existing session found');
+                    authContainer.style.display = 'block';
+                    appContainer.style.display = 'none';
                 }
-            });
+            } catch (error) {
+                debugAuth('Error checking session', error);
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
+            }
             
             // Set up periodic data refresh (every 30 seconds)
             setInterval(() => {
