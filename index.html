@@ -32,8 +32,9 @@
             display: block;
         }
         .tab-button.active {
-            background-color: #10b981;
-            color: white;
+            background-color: rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+            font-weight: 600;
         }
         .modal {
             display: none;
@@ -328,7 +329,7 @@
         </div>
 
         <div class="flex flex-wrap gap-1 mb-4 border-b border-white border-opacity-30 compact-section">
-            <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">
+            <button class="tab-button active px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('clients')">
                 <i class="fas fa-users mr-1"></i>Clients
             </button>
             <button class="tab-button px-3 py-1 text-xs font-medium rounded-t-lg text-white hover:bg-white hover:bg-opacity-20" onclick="showTab('transactions')">
@@ -345,7 +346,7 @@
             </button>
         </div>
 
-        <div id="clients" class="tab-content">
+        <div id="clients" class="tab-content active">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
                 <h2 class="text-xl font-semibold text-white mb-1 sm:mb-0">Client List</h2>
                 <div class="flex space-x-1">
@@ -1165,6 +1166,69 @@
             }
         }
 
+        // Tab navigation function - FIXED VERSION
+        window.showTab = function(tabName, type = null) {
+            console.log('Showing tab:', tabName, 'with type:', type);
+            
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+                console.log('Tab content activated:', tabName);
+            } else {
+                console.error('Tab not found:', tabName);
+            }
+            
+            // If it's the add-transaction tab and a type is specified, set the transaction type
+            if (tabName === 'add-transaction' && type) {
+                document.getElementById('transaction-type').value = type;
+                toggleLoanDetails();
+                console.log('Transaction type set to:', type);
+            }
+            
+            // Find and activate the corresponding tab button
+            let activeButton = null;
+            
+            // Special handling for add-transaction tabs
+            if (tabName === 'add-transaction') {
+                if (type === 'receivable') {
+                    activeButton = Array.from(tabButtons).find(button => 
+                        button.textContent.includes('Money Receivable')
+                    );
+                } else if (type === 'payable') {
+                    activeButton = Array.from(tabButtons).find(button => 
+                        button.textContent.includes('Money Payable')
+                    );
+                }
+            } else {
+                // For other tabs, match by tab name
+                activeButton = Array.from(tabButtons).find(button => {
+                    const buttonText = button.textContent.toLowerCase();
+                    const tabNameLower = tabName.toLowerCase().replace('-', ' ');
+                    return buttonText.includes(tabNameLower);
+                });
+            }
+            
+            if (activeButton) {
+                activeButton.classList.add('active');
+                console.log('Tab button activated:', activeButton.textContent);
+            } else {
+                console.warn('No matching tab button found for:', tabName);
+            }
+        };
+
         // Enhanced auth state change handler
         supabase.auth.onAuthStateChange((event, session) => {
             debugAuth('Auth state changed', { event, session: !!session, userId: session?.user?.id });
@@ -1613,44 +1677,6 @@
             doc.save('transactions_export.pdf');
             showNotification('Transaction history exported successfully.', 'success');
         });
-
-        // Tab navigation function
-        window.showTab = function(tabName, type = null) {
-            // Hide all tab contents
-            tabContents.forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Remove active class from all tab buttons
-            tabButtons.forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // Show selected tab content
-            const selectedTab = document.getElementById(tabName);
-            if (selectedTab) {
-                selectedTab.classList.add('active');
-            }
-            
-            // If it's the add-transaction tab and a type is specified, set the transaction type
-            if (tabName === 'add-transaction' && type) {
-                document.getElementById('transaction-type').value = type;
-                toggleLoanDetails();
-            }
-            
-            // Find and activate the corresponding tab button
-            const activeButton = Array.from(tabButtons).find(button => 
-                button.textContent.includes(tabName.replace('-', ' ')) ||
-                (tabName === 'add-transaction' && (
-                    button.textContent.includes('Money Receivable') || 
-                    button.textContent.includes('Money Payable')
-                ))
-            );
-            
-            if (activeButton) {
-                activeButton.classList.add('active');
-            }
-        };
 
         // Debug session button
         document.getElementById('debug-session').addEventListener('click', async () => {
